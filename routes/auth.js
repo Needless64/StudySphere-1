@@ -6,7 +6,11 @@ const sql     = require('../db');
 const router = express.Router();
 
 function makeToken(user) {
-  return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(
+    { id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 function cookieOpts() {
