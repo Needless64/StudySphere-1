@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudySphere – Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { overflow: auto; cursor: default; }
+    .page { display: block; height: auto; min-height: 100vh; padding: 0; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: rgba(8,8,8,0.97);
+      border-right: 1px solid rgba(139,92,246,0.12);
+      display: flex; flex-direction: column;
+      padding: 28px 18px;
+      position: fixed; top: 0; left: 0; height: 100vh; z-index: 10;
+    }
+    .sidebar .logo { margin-bottom: 40px; }
+    .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: var(--muted);
+      text-decoration: none; cursor: pointer; transition: all .2s;
+    }
+    .nav-item:hover, .nav-item.active { background: rgba(124,58,237,0.12); color: #c4b5fd; }
+    .nav-item.active { border-left: 2px solid var(--purple-l); }
+    .nav-icon { width: 22px; text-align: center; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sidebar-footer { padding-top: 20px; border-top: 1px solid rgba(139,92,246,0.1); }
+    .user-chip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(139,92,246,0.15);
+    }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-info strong { display: block; font-size: 13px; color: #e2d9f3; }
+    .user-info span   { font-size: 11px; color: var(--muted); }
+
+    /* ── Main ── */
+    .main { margin-left: 240px; flex: 1; padding: 36px 40px; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 36px;
+    }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #fff; }
+    .page-sub   { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+    /* ── Welcome Banner ── */
+    .welcome-banner {
+      position: relative; overflow: hidden;
+      background: rgba(8,8,8,0.9);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 20px; padding: 36px 40px;
+      margin-bottom: 28px;
+      display: flex; align-items: center; gap: 32px;
+    }
+    .welcome-banner::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--pink), var(--cyan));
+    }
+    .welcome-banner::after {
+      content: ''; position: absolute; top: -80px; right: -60px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .banner-icon-wrap {
+      flex-shrink: 0; width: 64px; height: 64px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(236,72,153,0.15));
+      border: 1px solid rgba(139,92,246,0.25); border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .banner-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 6px;
+    }
+    .banner-title span {
+      background: linear-gradient(90deg, var(--purple-l), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .banner-sub { font-size: 14px; color: var(--muted); line-height: 1.65; max-width: 500px; }
+    .banner-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .ba-primary {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 22px; border: none; border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; box-shadow: 0 4px 18px rgba(124,58,237,0.35);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .ba-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.5); }
+    .ba-ghost {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 22px; border-radius: 10px;
+      border: 1px solid rgba(139,92,246,0.25);
+      background: transparent; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 600; color: var(--purple-l);
+      transition: all .2s;
+    }
+    .ba-ghost:hover { border-color: var(--purple-l); background: rgba(124,58,237,0.07); }
+
+    /* ── Stats ── */
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: rgba(8,8,8,0.9); border: 1px solid rgba(139,92,246,0.12);
+      border-radius: 14px; padding: 20px 22px;
+      position: relative; overflow: hidden; transition: border-color .2s;
+    }
+    .stat-card:hover { border-color: rgba(139,92,246,0.3); }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .sc1::before { background: linear-gradient(90deg,var(--purple),var(--purple-l)); }
+    .sc2::before { background: linear-gradient(90deg,var(--pink),#f9a8d4); }
+    .sc3::before { background: linear-gradient(90deg,var(--cyan),#67e8f9); }
+    .sc4::before { background: linear-gradient(90deg,var(--lime),#d9f99d); }
+    .stat-icon-svg { margin-bottom: 10px; opacity: 0.5; }
+    .stat-val   { font-family: 'Playfair Display',serif; font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.15); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stat-hint  { font-size: 11px; color: rgba(124,58,237,0.45); margin-top: 5px; font-style: italic; }
+
+    /* ── Grid ── */
+    .grid2 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .panel {
+      background: rgba(8,8,8,0.9); border: 1px solid rgba(139,92,246,0.12);
+      border-radius: 14px; padding: 24px;
+    }
+    .panel-title {
+      font-size: 15px; font-weight: 600; color: #e2d9f3;
+      margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-badge {
+      font-size: 10px; padding: 3px 10px; border-radius: 99px;
+      background: rgba(124,58,237,0.12); border: 1px solid rgba(139,92,246,0.2);
+      color: var(--purple-l); font-weight: 600;
+    }
+
+    /* ── My Rooms empty state ── */
+    .my-rooms-empty {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 40px 20px; gap: 10px; border-radius: 14px;
+      border: 1.5px dashed rgba(139,92,246,0.18);
+      background: rgba(124,58,237,0.02);
+    }
+    .my-rooms-empty-icon {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: rgba(124,58,237,0.1); border: 1px solid rgba(139,92,246,0.2);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 8px;
+    }
+    .my-rooms-empty h3 { font-size: 15px; font-weight: 600; color: #5a5078; }
+    .my-rooms-empty p  { font-size: 13px; color: #3a3055; line-height: 1.65; max-width: 260px; }
+    .my-rooms-empty-actions { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+    .empty-btn-primary {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 20px; border-radius: 9px; border: none;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .empty-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.45); }
+    .empty-btn-ghost {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 20px; border-radius: 9px;
+      border: 1px solid rgba(139,92,246,0.25);
+      background: transparent; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 600; color: var(--purple-l);
+      transition: all .2s;
+    }
+    .empty-btn-ghost:hover { border-color: var(--purple-l); background: rgba(124,58,237,0.07); }
+
+    /* ── My Rooms filled state ── */
+    .room-cards { display: flex; flex-direction: column; gap: 10px; }
+    .room-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(139,92,246,0.12);
+      cursor: pointer; transition: all .2s;
+    }
+    .room-card:hover { background: rgba(124,58,237,0.08); border-color: rgba(139,92,246,0.3); }
+    .room-card-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .room-card-info { flex: 1; }
+    .room-card-name { font-size: 13px; font-weight: 600; color: #c4b5fd; }
+    .room-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .room-card-enter {
+      padding: 5px 14px; border-radius: 7px; border: none;
+      background: rgba(124,58,237,0.2); color: var(--purple-l);
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .room-card-enter:hover { background: rgba(124,58,237,0.4); }
+
+    /* ── Checklist ── */
+    .checklist { display: flex; flex-direction: column; gap: 10px; }
+    .check-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      border: 1px solid rgba(139,92,246,0.1);
+      background: rgba(255,255,255,0.015);
+      cursor: pointer; transition: all .2s;
+    }
+    .check-item:not(.done):hover { border-color: rgba(139,92,246,0.3); background: rgba(124,58,237,0.06); }
+    .check-item.done { opacity: 0.4; cursor: default; }
+    .check-circle {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid rgba(139,92,246,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: transparent; transition: all .2s;
+    }
+    .check-item.done .check-circle {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      border-color: transparent; color: #fff;
+    }
+    .check-label { font-size: 13px; color: #c4b5fd; flex: 1; font-weight: 500; }
+    .check-item.done .check-label { color: var(--muted); text-decoration: line-through; }
+    .check-xp {
+      font-size: 10px; padding: 2px 8px; border-radius: 99px;
+      background: rgba(163,230,53,0.1); border: 1px solid rgba(163,230,53,0.2);
+      color: var(--lime); font-weight: 600;
+    }
+    .check-arrow { font-size: 13px; color: var(--muted); }
+
+    /* ── Discover Rooms ── */
+    .disc-rooms { display: flex; flex-direction: column; gap: 10px; }
+    .disc-room {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(139,92,246,0.1);
+      transition: all .2s; cursor: pointer;
+    }
+    .disc-room:hover { background: rgba(124,58,237,0.08); border-color: rgba(139,92,246,0.3); }
+    .disc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-live { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.6); animation: blinkG 1.4s infinite; }
+    @keyframes blinkG { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .disc-name { font-size: 13px; font-weight: 500; color: #c4b5fd; flex: 1; }
+    .disc-meta { font-size: 11px; color: var(--muted); }
+    .join-btn {
+      padding: 5px 14px; border-radius: 7px; border: none;
+      background: rgba(124,58,237,0.2); color: var(--purple-l);
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .join-btn:hover { background: rgba(124,58,237,0.4); }
+
+    /* ── Empty state (activity) ── */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 28px 16px; gap: 8px; border-radius: 12px;
+      border: 1px dashed rgba(139,92,246,0.13); background: rgba(124,58,237,0.02);
+    }
+    .empty-icon-wrap {
+      width: 44px; height: 44px; border-radius: 11px;
+      background: rgba(124,58,237,0.08);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+    }
+    .empty-title { font-size: 13px; font-weight: 600; color: #5a5078; }
+    .empty-sub   { font-size: 12px; color: #3a3055; line-height: 1.6; max-width: 200px; }
+    .empty-cta {
+      margin-top: 6px; padding: 7px 16px; border-radius: 9px;
+      background: rgba(124,58,237,0.13); border: 1px solid rgba(139,92,246,0.22);
+      color: var(--purple-l); font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s;
+    }
+    .empty-cta:hover { background: rgba(124,58,237,0.25); }
+
+    /* ── Progress bar ── */
+    .progress-bar-wrap {
+      height: 4px; border-radius: 99px;
+      background: rgba(139,92,246,0.1); margin-bottom: 18px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; width: 20%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--purple), var(--pink)); transition: width .5s ease;
+    }
+
+    /* ── Create Room button ── */
+    .create-room-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 22px; border: none; border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; box-shadow: 0 4px 18px rgba(124,58,237,0.35);
+      transition: transform .15s, box-shadow .2s; position: relative; overflow: hidden;
+    }
+    .create-room-btn .btn-shine {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .create-room-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.5); }
+
+    /* ── Create Room Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: #0a0a0a; border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 20px; padding: 36px; width: 100%; max-width: 460px;
+      position: relative;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 60px rgba(124,58,237,0.1);
+      transform: translateY(20px); transition: transform .3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal::before {
+      content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
+    }
+    .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .modal-sub   { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(139,92,246,0.15);
+      color: var(--muted); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all .2s;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .modal-field { margin-bottom: 18px; }
+    .modal-field label {
+      display: block; font-size: 11px; font-weight: 600;
+      letter-spacing: .8px; text-transform: uppercase; color: #4a4560; margin-bottom: 7px;
+    }
+    .modal-field input, .modal-field select {
+      width: 100%; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(139,92,246,0.15); border-radius: 10px;
+      padding: 11px 14px; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; color: #e2d9f3; outline: none;
+      transition: border-color .2s, box-shadow .2s; cursor: pointer;
+    }
+    .modal-field input { cursor: text; }
+    .modal-field input::placeholder { color: #3d3555; }
+    .modal-field input:focus, .modal-field select:focus {
+      border-color: var(--purple-l); box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+    .modal-field select option { background: #0a0a0a; }
+    .modal-type-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .modal-type-btn {
+      padding: 12px; border-radius: 10px;
+      border: 1px solid rgba(139,92,246,0.15);
+      background: rgba(255,255,255,0.02); cursor: pointer; text-align: center; transition: all .2s;
+    }
+    .modal-type-btn.selected { border-color: var(--purple-l); background: rgba(124,58,237,0.12); }
+    .modal-type-btn:hover { border-color: rgba(139,92,246,0.4); }
+    .modal-type-icon { margin-bottom: 6px; display: flex; justify-content: center; }
+    .modal-type-label { font-size: 12px; font-weight: 600; color: #c4b5fd; }
+    .modal-type-desc  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .modal-submit {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+      transition: transform .15s, box-shadow .2s; position: relative; overflow: hidden; margin-top: 8px;
+    }
+    .modal-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.55); }
+    .modal-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+    /* ── Disc loading / empty ── */
+    .disc-loading { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+    .disc-empty   { text-align: center; padding: 20px 0; font-size: 13px; color: var(--muted); }
+    .disc-create-link {
+      background: none; border: none; color: var(--purple-l);
+      font-family: 'Space Grotesk', sans-serif; font-size: 13px;
+      cursor: pointer; text-decoration: underline;
+    }
+
+    /* ── Stat card hover glow ── */
+    .stat-card { transition: border-color .25s, box-shadow .25s, transform .25s; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.12); }
+    .sc1:hover { border-color: rgba(124,58,237,0.35); }
+    .sc2:hover { border-color: rgba(236,72,153,0.35); }
+    .sc3:hover { border-color: rgba(34,211,238,0.35); }
+    .sc4:hover { border-color: rgba(163,230,53,0.35); }
+
+    /* ── Topbar dynamic greeting ── */
+    #pageGreeting { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--purple-l); margin-bottom: 3px; }
+
+    /* ── Room card polish ── */
+    .room-card { transition: border-color .2s, box-shadow .2s, transform .2s; }
+    .room-card:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(124,58,237,0.14); }
+  </style>
+</head>
+<body>
+
+  <canvas id="splash"></canvas>
+  <div class="noise"></div>
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+
+  <!-- Create Room Modal -->
+  <div class="modal-overlay" id="createRoomModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeCreateRoom()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div class="modal-title">Create a Study Room</div>
+      <div class="modal-sub">Set up your space and invite classmates to join</div>
+
+      <div class="modal-field">
+        <label>Room Name</label>
+        <input type="text" id="roomNameInput" placeholder="e.g. Data Structures Finals Prep"/>
+      </div>
+      <div class="modal-field">
+        <label>Subject / Course</label>
+        <input type="text" id="roomSubjectInput" placeholder="e.g. CS101 · Computer Science"/>
+      </div>
+
+      <div class="modal-field">
+        <label>Room Type</label>
+        <div class="modal-type-row">
+          <div class="modal-type-btn selected" id="typePrivate" onclick="selectType('private')">
+            <div class="modal-type-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div class="modal-type-label">Private</div>
+            <div class="modal-type-desc">Invite-only</div>
+          </div>
+          <div class="modal-type-btn" id="typePublic" onclick="selectType('public')">
+            <div class="modal-type-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div class="modal-type-label">Public</div>
+            <div class="modal-type-desc">Anyone can join</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label>Session Focus (optional)</label>
+        <input type="text" id="roomFocusInput" placeholder="e.g. Chapter 5 — Linked Lists"/>
+      </div>
+
+      <button class="modal-submit" onclick="submitCreateRoom()">
+        <span class="btn-shine"></span>
+        Create Room &amp; Enter →
+      </button>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="logo-mark">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <circle cx="11" cy="11" r="9" stroke="white" stroke-width="1.5" fill="none"/>
+              <ellipse cx="11" cy="11" rx="4.5" ry="9" stroke="white" stroke-width="1.5" fill="none"/>
+              <line x1="2" y1="11" x2="20" y2="11" stroke="white" stroke-width="1.5"/>
+              <line x1="4" y1="6" x2="18" y2="6" stroke="white" stroke-width="1" opacity="0.6"/>
+              <line x1="4" y1="16" x2="18" y2="16" stroke="white" stroke-width="1" opacity="0.6"/>
+            </svg>
+          </div>
+          <span class="logo-text">StudySphere</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="nav-item active" href="dashboard.html">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          Dashboard
+        </a>
+        <a class="nav-item" href="#" onclick="openCreateRoom()">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+          Study Rooms
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          Community
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+          Resources
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>
+          Analytics
+        </a>
+        <a class="nav-item" href="#">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21.93 12M4.93 4.93A10 10 0 0 0 2.07 12m0 0a10 10 0 0 0 2.86 7.07M19.07 19.07A10 10 0 0 0 21.93 12"/></svg></span>
+          Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="userAvatar">S</div>
+          <div class="user-info">
+            <strong id="userName" class="welcome-name">Student</strong>
+            <span>Free Plan · Day 1</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <div id="pageGreeting"></div>
+          <div class="page-title" id="pageTitle">Dashboard</div>
+          <div class="page-sub" id="pageSub">Loading your workspace…</div>
+        </div>
+        <button class="create-room-btn" onclick="openCreateRoom()">
+          <span class="btn-shine"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Create Room
+        </button>
+      </div>
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner fade-up">
+        <div class="banner-icon-wrap">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="bannerGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#ec4899"/>
+              </linearGradient>
+            </defs>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#bannerGrad)"/>
+          </svg>
+        </div>
+        <div>
+          <div class="banner-title">Hey there, <span id="bannerName">welcome aboard!</span></div>
+          <div class="banner-sub">Your StudySphere is fresh and ready. Complete the checklist below, join a live room, or explore resources shared by your peers.</div>
+          <div class="banner-actions">
+            <button class="ba-primary" onclick="openCreateRoom()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create a Study Room
+            </button>
+            <button class="ba-ghost">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Find Classmates
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats fade-up">
+        <div class="stat-card sc1">
+          <div class="stat-icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="stat-val">0</div>
+          <div class="stat-label">Day Streak</div>
+          <div class="stat-hint">Study today to start one!</div>
+        </div>
+        <div class="stat-card sc2">
+          <div class="stat-icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f9a8d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="stat-val">0h</div>
+          <div class="stat-label">Study Time</div>
+          <div class="stat-hint">Join a room to log time</div>
+        </div>
+        <div class="stat-card sc3">
+          <div class="stat-icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="stat-val">0</div>
+          <div class="stat-label">Resources Shared</div>
+          <div class="stat-hint">Upload your first file</div>
+        </div>
+        <div class="stat-card sc4">
+          <div class="stat-icon-svg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d9f99d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+          <div class="stat-val">—</div>
+          <div class="stat-label">Leaderboard Rank</div>
+          <div class="stat-hint">Earn XP to appear here</div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="grid2 fade-up">
+
+        <!-- My Rooms -->
+        <div class="panel">
+          <div class="panel-title">
+            My Rooms
+            <span class="panel-badge" id="myRoomsBadge">0 rooms</span>
+          </div>
+          <div id="myRoomsContent"></div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Discover -->
+          <div class="panel">
+            <div class="panel-title">
+              Discover Rooms
+              <span class="panel-badge" style="display:flex;align-items:center;gap:5px">
+                <span class="disc-dot dot-live" style="width:6px;height:6px;flex-shrink:0;position:relative;"></span> Live
+              </span>
+            </div>
+            <div class="disc-rooms" id="rooms-grid">
+              <div class="disc-loading">
+                <div class="skeleton" style="height:40px;border-radius:10px;margin-bottom:8px"></div>
+                <div class="skeleton" style="height:40px;border-radius:10px;margin-bottom:8px"></div>
+                <div class="skeleton" style="height:40px;border-radius:10px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity -->
+          <div class="panel">
+            <div class="panel-title">Recent Activity</div>
+            <div class="empty-state">
+              <div class="empty-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4a4070" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div class="empty-title">Nothing here yet</div>
+              <div class="empty-sub">Your activity will appear once you start studying with others.</div>
+              <button class="empty-cta" onclick="openCreateRoom()">Create a Room →</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="panel fade-up">
+        <div class="panel-title">
+          Get Started — 5 Steps
+          <span class="panel-badge">1 / 5 done</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar"></div></div>
+        <div class="checklist">
+          <div class="check-item done">
+            <div class="check-circle">✓</div>
+            <span class="check-label">Create your account</span>
+            <span class="check-xp">+10 XP</span>
+          </div>
+          <div class="check-item" onclick="openCreateRoom()">
+            <div class="check-circle"></div>
+            <span class="check-label">Create or join your first Study Room</span>
+            <span class="check-xp">+20 XP</span>
+            <span class="check-arrow">→</span>
+          </div>
+          <div class="check-item">
+            <div class="check-circle"></div>
+            <span class="check-label">Upload a resource or note</span>
+            <span class="check-xp">+15 XP</span>
+            <span class="check-arrow">→</span>
+          </div>
+          <div class="check-item">
+            <div class="check-circle"></div>
+            <span class="check-label">Connect with a classmate</span>
+            <span class="check-xp">+10 XP</span>
+            <span class="check-arrow">→</span>
+          </div>
+          <div class="check-item">
+            <div class="check-circle"></div>
+            <span class="check-label">Complete a 30-min focus session</span>
+            <span class="check-xp">+25 XP</span>
+            <span class="check-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    let selectedType = 'private';
+
+    function selectType(t) {
+      selectedType = t;
+      document.getElementById('typePrivate').classList.toggle('selected', t === 'private');
+      document.getElementById('typePublic').classList.toggle('selected', t === 'public');
+    }
+
+    function openCreateRoom() {
+      document.getElementById('createRoomModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeCreateRoom() {
+      document.getElementById('createRoomModal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('createRoomModal').addEventListener('click', function(e) {
+      if (e.target === this) closeCreateRoom();
+    });
+
+    async function submitCreateRoom() {
+      const name    = document.getElementById('roomNameInput').value.trim();
+      const subject = document.getElementById('roomSubjectInput').value.trim() || 'General';
+      const desc    = document.getElementById('roomFocusInput').value.trim();
+      if (!name) {
+        const inp = document.getElementById('roomNameInput');
+        inp.style.borderColor = '#ec4899';
+        inp.focus();
+        setTimeout(() => inp.style.borderColor = '', 1500);
+        return;
+      }
+      const btn = document.querySelector('#createRoomModal .modal-submit');
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+      try {
+        const res = await fetch('/api/rooms', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, subject, description: desc, is_public: selectedType === 'public' })
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast('❌', data.error || 'Failed to create room'); return; }
+        closeCreateRoom();
+        window.location.href = `room.html?id=${data.room.id}`;
+      } catch { showToast('❌', 'Network error'); }
+      finally { if (btn) { btn.disabled = false; btn.textContent = 'Create Room'; } }
+    }
+
+    function initUserName() {
+      const name = localStorage.getItem('ss_user_name') || 'Student';
+      document.getElementById('userName').textContent = name;
+      document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+
+      // Time-based greeting
+      const h = new Date().getHours();
+      const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      const greetEl = document.getElementById('pageGreeting');
+      const titleEl = document.getElementById('pageTitle');
+      const subEl   = document.getElementById('pageSub');
+      if (greetEl) greetEl.textContent = greeting;
+      if (titleEl) titleEl.textContent = greeting + ', ' + name + ' 👋';
+      if (subEl)   subEl.textContent   = 'Here\'s what\'s happening in your study network today.';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initUserName();
+    });
+  </script>
+</body>
+</html>
