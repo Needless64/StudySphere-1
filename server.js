@@ -41,8 +41,8 @@ app.use(cookieParser());
 
 app.get('/api/config', (req, res) => {
   res.json({
-    pusherKey:     process.env.PUSHER_KEY     || '',
-    pusherCluster: process.env.PUSHER_CLUSTER || '',
+    pusherKey:     (process.env.PUSHER_KEY     || '').trim(),
+    pusherCluster: (process.env.PUSHER_CLUSTER || '').trim(),
   });
 });
 
