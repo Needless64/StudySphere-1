@@ -756,7 +756,10 @@
 
     function toggleTimerEdit() {
       const panel = document.getElementById('timerEditPanel');
-      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      if (!panel) return;
+      const opening = panel.style.display === 'none';
+      panel.style.display = opening ? 'block' : 'none';
+      if (opening) setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
     }
 
     function applyTimerEdit() {
