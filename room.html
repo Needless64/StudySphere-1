@@ -607,7 +607,7 @@
   </div>
 
   <script src="https://js.pusher.com/8.4/pusher.min.js"></script>
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
   <script>
     /* Room info is loaded from the backend by loadRoom() in script.js */
 
@@ -784,6 +784,8 @@
       document.getElementById('tabShort').classList.toggle('active', mode === 'short');
       document.getElementById('tabLong').classList.toggle('active',  mode === 'long');
       updateDisplay();
+      timerBtnLabel.textContent = 'Start';
+      timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
       broadcastTimerState('mode-change');
     }
     function toggleTimer() { isRunning ? pauseTimer() : startTimer(); }
