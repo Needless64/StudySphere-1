@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS study_rooms (
   description TEXT,
   host_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
   max_members INTEGER DEFAULT 20,
-  is_public   BOOLEAN DEFAULT TRUE,
-  created_at  TIMESTAMPTZ DEFAULT NOW()
+  is_public       BOOLEAN DEFAULT TRUE,
+  notes           TEXT DEFAULT '',
+  whiteboard_data JSONB,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS room_members (

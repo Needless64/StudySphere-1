@@ -2,7 +2,6 @@ const express = require('express');
 const jwt     = require('jsonwebtoken');
 const multer  = require('multer');
 const path    = require('path');
-const fs      = require('fs');
 const sql     = require('../db');
 
 const router = express.Router({ mergeParams: true });
@@ -13,24 +12,12 @@ function getUser(req) {
   try { return jwt.verify(token, process.env.JWT_SECRET); } catch { return null; }
 }
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `r${req.params.roomId}-${uniqueSuffix}${ext}`);
-  }
-});
-
+// Memory storage — Vercel has a read-only filesystem
 const upload = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv|md|png|jpg|jpeg|gif|webp|zip|rar|7z)$/i;
+    const allowed = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv|md|png|jpg|jpeg|gif|webp)$/i;
     if (allowed.test(path.extname(file.originalname))) cb(null, true);
     else cb(new Error('File type not allowed'));
   }
@@ -52,26 +39,22 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/rooms/:roomId/resources  — file upload or URL
+// POST /api/rooms/:roomId/resources
 router.post('/', upload.single('file'), async (req, res) => {
   const user = getUser(req);
   if (!user) return res.status(401).json({ error: 'Login required' });
 
-  const file = req.file;
+  if (req.file) {
+    return res.status(400).json({ error: 'File uploads not supported. Share a URL instead.' });
+  }
+
   const { title, url, file_type } = req.body;
-
-  if (!file && !title && !url) return res.status(400).json({ error: 'File or title required' });
-
-  const resourceUrl  = file ? `/uploads/${file.filename}` : (url || '');
-  const resourceType = file ? path.extname(file.originalname).toLowerCase().slice(1) : (file_type || 'link');
-  const resourceSize = file ? file.size : 0;
-  const displayTitle = title || file?.originalname || 'Untitled';
-  const origName     = file?.originalname || '';
+  if (!title && !url) return res.status(400).json({ error: 'Title or URL required' });
 
   try {
     const [resource] = await sql`
-      INSERT INTO resources (room_id, user_id, title, url, file_type, file_size, original_name)
-      VALUES (${req.params.roomId}, ${user.id}, ${displayTitle}, ${resourceUrl}, ${resourceType}, ${resourceSize}, ${origName})
+      INSERT INTO resources (room_id, user_id, title, url, file_type)
+      VALUES (${req.params.roomId}, ${user.id}, ${title || 'Untitled'}, ${url || ''}, ${file_type || 'link'})
       RETURNING *
     `;
     await sql`
@@ -85,10 +68,9 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 });
 
-// Multer error handler
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 50 MB)' });
+    if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 10 MB)' });
     return res.status(400).json({ error: err.message });
   }
   if (err) return res.status(400).json({ error: err.message });

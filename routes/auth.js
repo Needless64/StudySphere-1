@@ -4,10 +4,18 @@ const jwt     = require('jsonwebtoken');
 const sql     = require('../db');
 
 const router = express.Router();
-const SECRET = process.env.JWT_SECRET;
 
 function makeToken(user) {
-  return jwt.sign({ id: user.id, email: user.email }, SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+}
+
+function cookieOpts() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
 }
 
 // POST /api/auth/register
@@ -28,7 +36,7 @@ router.post('/register', async (req, res) => {
     `;
     await sql`INSERT INTO user_stats (user_id) VALUES (${user.id})`;
 
-    res.cookie('token', makeToken(user), { httpOnly: true, maxAge: 7*24*60*60*1000 });
+    res.cookie('token', makeToken(user), cookieOpts());
     res.json({ user });
   } catch (e) {
     console.error(e);
@@ -49,7 +57,7 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     const safe = { id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name };
-    res.cookie('token', makeToken(safe), { httpOnly: true, maxAge: 7*24*60*60*1000 });
+    res.cookie('token', makeToken(safe), cookieOpts());
     res.json({ user: safe });
   } catch (e) {
     console.error(e);
