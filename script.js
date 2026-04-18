@@ -535,6 +535,9 @@ async function loadRoom() {
     const { resources }   = await resRes.json();
 
     if (room) {
+      window._roomHostId = room.host_id;
+      if (typeof applyTimerOwnership === 'function') applyTimerOwnership();
+      if (room.timer_state && typeof applyTimerSync === 'function') applyTimerSync(room.timer_state);
       const nameEl    = document.getElementById('roomTitle');
       const subjectEl = document.getElementById('roomSubject');
       if (nameEl)    nameEl.textContent    = room.name;
@@ -570,7 +573,7 @@ function initPusher(roomId) {
   // New chat message
   channel.bind('new-message', (msg) => {
     const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
-    if (msg.user_id === me.id) return; // already rendered locally
+    if (Number(msg.user_id) === Number(me.id)) return; // already rendered locally
     appendMessage(msg);
   });
 
@@ -602,15 +605,30 @@ function initPusher(roomId) {
   // New resource shared
   channel.bind('new-resource', (resource) => {
     const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
-    if (resource.user_id === me.id) return;
+    if (Number(resource.user_id) === Number(me.id)) return;
     appendResource(resource);
   });
 
-  // Whiteboard updated by someone else
+  // Whiteboard updated by someone else — fetch from server (Pusher 10KB limit prevents sending image data)
   channel.bind('whiteboard-update', (payload) => {
     const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
-    if (payload.updated_by === me.id) return;
-    if (typeof applyRemoteWhiteboard === 'function') applyRemoteWhiteboard(payload.data);
+    if (Number(payload.updated_by) === Number(me.id)) return;
+    if (typeof loadWb === 'function') loadWb();
+  });
+
+  // Timer synced by host
+  channel.bind('timer-sync', (data) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (Number(data.by) === Number(me.id)) return;
+    if (typeof applyTimerSync === 'function') applyTimerSync(data);
+  });
+
+  // Host transferred
+  channel.bind('host-changed', (data) => {
+    window._roomHostId = data.new_host_id;
+    if (typeof applyTimerOwnership === 'function') applyTimerOwnership();
+    fetch(`/api/rooms/${roomId}/members`, { credentials: 'include' })
+      .then(r => r.json()).then(({ members }) => renderMembers(members || []));
   });
 }
 
@@ -684,15 +702,19 @@ function renderMembers(members) {
     'linear-gradient(135deg,#a855f7,#ec4899)',
   ];
   const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+  const iAmHost = Number(me.id) === Number(window._roomHostId);
   list.innerHTML = members.map((m, i) => {
     const name    = (m.first_name + ' ' + (m.last_name?.charAt(0) || '') + '.').trim();
     const initial = m.first_name.charAt(0).toUpperCase();
-    const isMe    = m.id === me.id;
+    const isMe    = Number(m.id) === Number(me.id);
     const display = isMe ? 'You' : name;
-    return `<div class="member">
+    const makeOwnerBtn = (iAmHost && !isMe)
+      ? `<button onclick="transferHost(${m.id})" title="Make owner" style="margin-left:auto;background:none;border:1px solid rgba(167,139,250,0.4);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;">Owner</button>`
+      : '';
+    return `<div class="member" style="display:flex;align-items:center;gap:8px">
       <div class="member-av" style="background:${grads[i % grads.length]}">${initial}</div>
-      <div><div class="member-name">${display}</div><div class="member-role">${m.role}</div></div>
-      <div class="online-indicator"></div>
+      <div style="flex:1;min-width:0"><div class="member-name">${display}</div><div class="member-role">${m.role}</div></div>
+      ${makeOwnerBtn}<div class="online-indicator"></div>
     </div>`;
   }).join('');
   if (countEl) countEl.textContent = members.length + ' Live';
@@ -830,7 +852,6 @@ async function uploadFiles(files) {
   const roomId = new URLSearchParams(window.location.search).get('id');
   if (!roomId) return;
   for (const file of files) await uploadSingleFile(file, roomId);
-  await loadRoom();
 }
 
 function uploadSingleFile(file, roomId) {
@@ -890,6 +911,19 @@ async function sendMessage() {
       appendMessage(data.message);
     }
   } catch(e) { showToast('❌','Failed to send'); }
+}
+
+async function transferHost(memberId) {
+  const roomId = new URLSearchParams(window.location.search).get('id');
+  if (!confirm('Make this person the room owner?')) return;
+  try {
+    const res = await fetch(`/api/rooms/${roomId}/transfer-host`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_host_id: memberId })
+    });
+    if (!res.ok) { const d = await res.json(); showToast('❌', d.error || 'Failed'); }
+  } catch(e) { showToast('❌', 'Failed to transfer'); }
 }
 
 /* Init */

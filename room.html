@@ -447,6 +447,19 @@
         <div class="timer-status-bar">
           <div class="timer-status-fill" id="timerBar"></div>
         </div>
+
+        <div id="editTimerBtnWrap" style="text-align:center;margin-top:10px">
+          <button id="editTimerBtn" onclick="toggleTimerEdit()" style="background:none;border:1px solid rgba(167,139,250,0.3);color:#a78bfa;border-radius:8px;padding:4px 14px;font-size:11px;cursor:pointer;letter-spacing:.5px">⏱ Edit Time</button>
+        </div>
+        <div id="timerEditPanel" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(167,139,250,0.2);border-radius:10px">
+          <div style="font-size:10px;color:#94a3b8;letter-spacing:.8px;margin-bottom:8px">CUSTOM DURATIONS</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;color:#e2e8f0;display:flex;justify-content:space-between;align-items:center">Focus (min) <input id="editFocus" type="number" min="1" max="120" value="25" style="width:52px;background:rgba(255,255,255,0.07);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:11px;text-align:center"></label>
+            <label style="font-size:11px;color:#e2e8f0;display:flex;justify-content:space-between;align-items:center">Short Break (min) <input id="editShort" type="number" min="1" max="60" value="5" style="width:52px;background:rgba(255,255,255,0.07);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:11px;text-align:center"></label>
+            <label style="font-size:11px;color:#e2e8f0;display:flex;justify-content:space-between;align-items:center">Long Break (min) <input id="editLong" type="number" min="1" max="60" value="15" style="width:52px;background:rgba(255,255,255,0.07);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:3px 7px;color:#e2e8f0;font-size:11px;text-align:center"></label>
+            <button onclick="applyTimerEdit()" style="margin-top:4px;background:linear-gradient(135deg,#7c3aed,#ec4899);border:none;color:#fff;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;font-weight:600">Apply</button>
+          </div>
+        </div>
       </div>
 
       <div>
@@ -580,7 +593,7 @@
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input-row">
         <div class="chat-input-wrap">
-          <input class="chat-input" type="text" id="chatInputField" placeholder="Message the room…" onkeydown="if(event.key==='Enter')sendMessage()"/>
+          <input class="chat-input" type="text" id="chatInputField" placeholder="Message the room…"/>
           <button class="send-btn" onclick="sendMessage()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/>
@@ -606,6 +619,40 @@
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + id).classList.add('active');
+      if (id === 'whiteboard') {
+        setTimeout(() => {
+          resizeWb();
+          if (window._pendingWbData) {
+            const img = new Image();
+            img.onload = () => { wbFill(); wbCtx.drawImage(img, 0, 0); };
+            img.src = window._pendingWbData;
+            window._pendingWbData = null;
+          } else {
+            loadWb();
+          }
+        }, 50);
+      }
+    }
+
+    /* ── Timer ownership ── */
+    function applyTimerOwnership() {
+      const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+      const isOwner = Number(me.id) === Number(window._roomHostId);
+      ['timerStartBtn', 'tabFocus', 'tabShort', 'tabLong', 'editTimerBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.disabled = !isOwner;
+        el.style.opacity = isOwner ? '' : '0.4';
+        el.style.cursor = isOwner ? '' : 'not-allowed';
+        el.title = isOwner ? '' : 'Only the room owner can control the timer';
+      });
+      document.querySelectorAll('.timer-btn-reset').forEach(el => {
+        el.disabled = !isOwner;
+        el.style.opacity = isOwner ? '' : '0.4';
+        el.style.cursor = isOwner ? '' : 'not-allowed';
+      });
+      const editWrap = document.getElementById('editTimerBtnWrap');
+      if (editWrap) editWrap.style.display = isOwner ? 'block' : 'none';
     }
 
     /* Chat send is handled by sendMessage() in script.js */
@@ -646,6 +693,87 @@
       timerArc.style.strokeDashoffset = CIRC * (1 - pct);
       timerBar.style.width = (pct * 100) + '%';
     }
+    async function broadcastTimerState(action) {
+      const roomId = new URLSearchParams(window.location.search).get('id');
+      if (!roomId) return;
+      try {
+        await fetch(`/api/rooms/${roomId}/timer-sync`, {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action,
+            mode: currentMode,
+            remainingSecs,
+            isRunning,
+            startedAt: isRunning ? Date.now() : null,
+            totalSecs,
+            modes: { focus: MODES.focus.duration, short: MODES.short.duration, long: MODES.long.duration }
+          })
+        });
+      } catch(e) {}
+    }
+
+    function applyTimerSync(data) {
+      clearInterval(timerInterval); isRunning = false;
+
+      if (data.modes) {
+        MODES.focus.duration = data.modes.focus || MODES.focus.duration;
+        MODES.short.duration = data.modes.short || MODES.short.duration;
+        MODES.long.duration  = data.modes.long  || MODES.long.duration;
+      }
+      if (data.mode) {
+        currentMode = data.mode;
+        totalSecs = data.totalSecs || MODES[data.mode].duration;
+        timerModeLabel.textContent = MODES[data.mode].label;
+        document.getElementById('tabFocus').classList.toggle('active', data.mode === 'focus');
+        document.getElementById('tabShort').classList.toggle('active', data.mode === 'short');
+        document.getElementById('tabLong').classList.toggle('active',  data.mode === 'long');
+      }
+
+      // Account for time elapsed since host sent the state
+      let secs = data.remainingSecs;
+      if (data.isRunning && data.startedAt) {
+        const elapsed = Math.floor((Date.now() - data.startedAt) / 1000);
+        secs = Math.max(0, data.remainingSecs - elapsed);
+      }
+      remainingSecs = secs;
+      updateDisplay();
+
+      if (data.isRunning && remainingSecs > 0) {
+        isRunning = true;
+        timerBtnLabel.textContent = 'Pause';
+        timerBtnIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        timerInterval = setInterval(() => {
+          remainingSecs--;
+          updateDisplay();
+          if (remainingSecs <= 0) { clearInterval(timerInterval); isRunning = false; onTimerComplete(); }
+        }, 1000);
+      } else {
+        timerBtnLabel.textContent = (!data.isRunning && (data.action === 'reset' || data.action === 'mode-change')) ? 'Start' : 'Resume';
+        timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      }
+    }
+
+    function toggleTimerEdit() {
+      const panel = document.getElementById('timerEditPanel');
+      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function applyTimerEdit() {
+      if (isRunning) return;
+      const f = parseInt(document.getElementById('editFocus')?.value) || 25;
+      const s = parseInt(document.getElementById('editShort')?.value) || 5;
+      const l = parseInt(document.getElementById('editLong')?.value) || 15;
+      MODES.focus.duration = Math.max(1, Math.min(120, f)) * 60;
+      MODES.short.duration = Math.max(1, Math.min(60,  s)) * 60;
+      MODES.long.duration  = Math.max(1, Math.min(60,  l)) * 60;
+      totalSecs = MODES[currentMode].duration;
+      remainingSecs = totalSecs;
+      updateDisplay();
+      document.getElementById('timerEditPanel').style.display = 'none';
+      broadcastTimerState('mode-change');
+    }
+
     function setMode(mode) {
       if (isRunning) return;
       currentMode = mode;
@@ -656,9 +784,13 @@
       document.getElementById('tabShort').classList.toggle('active', mode === 'short');
       document.getElementById('tabLong').classList.toggle('active',  mode === 'long');
       updateDisplay();
+      broadcastTimerState('mode-change');
     }
     function toggleTimer() { isRunning ? pauseTimer() : startTimer(); }
     function startTimer() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
       isRunning = true;
       timerBtnLabel.textContent = 'Pause';
       timerBtnIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
@@ -667,11 +799,13 @@
         updateDisplay();
         if (remainingSecs <= 0) { clearInterval(timerInterval); isRunning = false; onTimerComplete(); }
       }, 1000);
+      broadcastTimerState('start');
     }
     function pauseTimer() {
       clearInterval(timerInterval); isRunning = false;
       timerBtnLabel.textContent = 'Resume';
       timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      broadcastTimerState('pause');
     }
     function resetTimer() {
       clearInterval(timerInterval); isRunning = false;
@@ -679,30 +813,56 @@
       timerBtnLabel.textContent = 'Start';
       timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
       updateDisplay();
+      broadcastTimerState('reset');
     }
+    function playAlarm() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [880, 660, 880, 1100, 880];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+          gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.18 + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.16);
+          osc.start(ctx.currentTime + i * 0.18);
+          osc.stop(ctx.currentTime + i * 0.18 + 0.18);
+        });
+      } catch(e) {}
+    }
+
+    function fireNotification(title, body) {
+      window.focus();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const n = new Notification(title, {
+          body,
+          icon: '/favicon.ico',
+          requireInteraction: true,
+          tag: 'studysphere-timer'
+        });
+        n.onclick = () => { window.focus(); n.close(); };
+      }
+    }
+
     function onTimerComplete() {
       timerBtnLabel.textContent = 'Start';
       timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      playAlarm();
       if (currentMode === 'focus') {
         completedSess++;
         localStorage.setItem('ss_completed_sessions', completedSess);
         completedLabel.textContent = completedSess + (completedSess === 1 ? ' session' : ' sessions');
         currentSession = currentSession < 4 ? currentSession + 1 : 1;
         sessionLabel.textContent = 'Session ' + currentSession + ' of 4';
-        setTimeout(() => setMode(completedSess % 4 === 0 ? 'long' : 'short'), 600);
+        const nextMode = completedSess % 4 === 0 ? 'long' : 'short';
+        fireNotification('⏰ Focus session complete!',
+          nextMode === 'long' ? 'Great work! Take a 15-min long break.' : 'Nice! Take a 5-min short break.');
+        setTimeout(() => setMode(nextMode), 600);
       } else {
+        fireNotification('📚 Break over — back to focus!', 'Your break ended. Time to study!');
         setTimeout(() => setMode('focus'), 600);
       }
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
-      } catch(e) {}
     }
 
     timerArc.style.strokeDasharray = CIRC;
