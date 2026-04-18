@@ -76,7 +76,7 @@ router.get('/me', (req, res) => {
   const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Not authenticated' });
   try {
-    const user = jwt.verify(token, SECRET);
+    const user = jwt.verify(token, process.env.JWT_SECRET);
     res.json({ user });
   } catch {
     res.status(401).json({ error: 'Invalid token' });
