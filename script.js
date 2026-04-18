@@ -610,10 +610,12 @@ function initPusher(roomId) {
   });
 
   // Whiteboard updated by someone else — fetch from server (Pusher 10KB limit prevents sending image data)
+  let _wbLoadTimer;
   channel.bind('whiteboard-update', (payload) => {
     const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
     if (Number(payload.updated_by) === Number(me.id)) return;
-    if (typeof loadWb === 'function') loadWb();
+    clearTimeout(_wbLoadTimer);
+    _wbLoadTimer = setTimeout(() => { if (typeof loadWb === 'function') loadWb(); }, 1500);
   });
 
   // Timer synced by host
