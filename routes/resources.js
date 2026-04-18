@@ -63,7 +63,7 @@ router.post('/', upload.single('file'), async (req, res) => {
       WHERE user_id = ${user.id}
     `;
     const full = { ...resource, shared_by: `${user.first_name || ''} ${user.last_name || ''}`.trim() };
-    pusher.trigger(`room-${req.params.roomId}`, 'new-resource', full);
+    await pusher.trigger(`room-${req.params.roomId}`, 'new-resource', full);
     res.status(201).json({ resource: full });
   } catch (e) {
     console.error(e);

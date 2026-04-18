@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
       WHERE user_id = ${user.id}
     `;
     const fullMsg = { ...msg, sender_name: `${user.first_name || 'User'} ${user.last_name || ''}`.trim() };
-    pusher.trigger(`room-${req.params.roomId}`, 'new-message', fullMsg);
+    await pusher.trigger(`room-${req.params.roomId}`, 'new-message', fullMsg);
     res.status(201).json({ message: fullMsg });
   } catch (e) {
     res.status(500).json({ error: 'Failed to send message' });
