@@ -711,7 +711,7 @@ function renderMembers(members) {
     const isMe    = Number(m.id) === Number(me.id);
     const display = isMe ? 'You' : name;
     const makeOwnerBtn = (iAmHost && !isMe)
-      ? `<button onclick="transferHost(${m.id})" title="Make owner" style="margin-left:auto;background:none;border:1px solid rgba(167,139,250,0.4);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;">Owner</button>`
+      ? `<button onclick="transferHost(${m.id})" title="Transfer room ownership" style="margin-left:auto;background:none;border:1px solid rgba(167,139,250,0.4);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;">Make Owner</button>`
       : '';
     return `<div class="member" style="display:flex;align-items:center;gap:8px">
       <div class="member-av" style="background:${grads[i % grads.length]}">${initial}</div>
