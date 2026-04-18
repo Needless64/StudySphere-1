@@ -551,7 +551,99 @@ async function loadRoom() {
       const { members } = await membersRes.json();
       renderMembers(members || []);
     }
+
+    // Real-time via Pusher
+    initPusher(roomId);
   } catch(e) { console.error('Room load error', e); }
+}
+
+let _typingTimer;
+
+function initPusher(roomId) {
+  const key = window.PUSHER_KEY;
+  const cluster = window.PUSHER_CLUSTER;
+  if (!key || typeof Pusher === 'undefined') return;
+
+  const pusher  = new Pusher(key, { cluster, forceTLS: true });
+  const channel = pusher.subscribe('room-' + roomId);
+
+  // New chat message
+  channel.bind('new-message', (msg) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (msg.user_id === me.id) return; // already rendered locally
+    appendMessage(msg);
+  });
+
+  // Notes updated by someone else
+  channel.bind('notes-update', (data) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (data.updated_by === me.id) return;
+    const notesEl = document.getElementById('notesArea');
+    if (notesEl && document.activeElement !== notesEl) {
+      notesEl.value = data.notes;
+    }
+    showTypingBadge(data.updated_by_name + ' is editing notes…', 3000);
+  });
+
+  // Typing indicator
+  channel.bind('typing', (data) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (data.user_id === me.id) return;
+    showTypingBadge(data.name + ' is typing…', 2500);
+  });
+
+  // Member joined — refresh member list
+  channel.bind('member-joined', () => {
+    fetch(`/api/rooms/${roomId}/members`, { credentials: 'include' })
+      .then(r => r.json())
+      .then(({ members }) => renderMembers(members || []));
+  });
+
+  // New resource shared
+  channel.bind('new-resource', (resource) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (resource.user_id === me.id) return;
+    appendResource(resource);
+  });
+
+  // Whiteboard updated by someone else
+  channel.bind('whiteboard-update', (payload) => {
+    const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
+    if (payload.updated_by === me.id) return;
+    if (typeof applyRemoteWhiteboard === 'function') applyRemoteWhiteboard(payload.data);
+  });
+}
+
+function showTypingBadge(text, ms) {
+  let badge = document.getElementById('typingBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'typingBadge';
+    badge.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(30,20,50,0.9);color:#a78bfa;padding:6px 14px;border-radius:20px;font-size:12px;z-index:999;pointer-events:none;backdrop-filter:blur(8px);border:1px solid rgba(167,139,250,0.3)';
+    document.body.appendChild(badge);
+  }
+  badge.textContent = text;
+  badge.style.display = 'block';
+  clearTimeout(_typingTimer);
+  _typingTimer = setTimeout(() => { badge.style.display = 'none'; }, ms);
+}
+
+function appendMessage(msg) {
+  const list = document.getElementById('chatMessages');
+  if (!list) return;
+  const emptyMsg = list.querySelector('p');
+  if (emptyMsg) emptyMsg.remove();
+  const msgColors = ['linear-gradient(135deg,#7c3aed,#ec4899)','linear-gradient(135deg,#06b6d4,#3b82f6)','linear-gradient(135deg,#f97316,#eab308)','linear-gradient(135deg,#22c55e,#06b6d4)'];
+  const color   = msgColors[list.children.length % msgColors.length];
+  const initial = (msg.sender_name || 'U').charAt(0).toUpperCase();
+  const time    = new Date(msg.created_at || Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const safe    = (msg.content || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const safeName = (msg.sender_name || 'Unknown').replace(/</g,'&lt;');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.innerHTML = `<div class="msg-av" style="background:${color}">${initial}</div><div class="msg-body"><div class="msg-meta"><span class="msg-name">${safeName}</span><span class="msg-time"> ${time}</span></div><div class="msg-text">${safe}</div></div>`;
+  list.appendChild(div);
+  list.scrollTop = list.scrollHeight;
 }
 
 function renderMessages(messages) {
@@ -680,6 +772,39 @@ function renderResources(resources) {
   }).join('');
 }
 
+function appendResource(r) {
+  const list = document.querySelector('#tab-resources .resources');
+  const countEl = document.getElementById('resCount');
+  if (!list) return;
+  const emptyMsg = list.querySelector('p.empty-msg');
+  if (emptyMsg) emptyMsg.remove();
+  const info = getFileInfo(r.file_type);
+  const safeTitle = (r.title || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const safeBy = (r.shared_by || 'Unknown').replace(/</g,'&lt;');
+  const viewable = new Set(['pdf','png','jpg','jpeg','gif','webp','txt','md','csv']);
+  const canView = viewable.has((r.file_type || '').toLowerCase());
+  const div = document.createElement('div');
+  div.className = 'res-item';
+  div.innerHTML = `
+    <div class="res-icon-wrap" style="background:${info.color}18;border-color:${info.color}30;flex-shrink:0">
+      <span style="font-size:9px;font-weight:800;color:${info.color};letter-spacing:.5px">${info.label}</span>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="res-title" title="${safeTitle}">${safeTitle}</div>
+      <div class="res-by">${safeBy}</div>
+    </div>
+    ${canView
+      ? `<a class="res-dl" href="${r.url}" target="_blank" rel="noopener">Open</a>`
+      : `<a class="res-dl" href="${r.url}" download="${safeTitle}">Download</a>`}
+  `;
+  list.prepend(div);
+  if (countEl) {
+    const cur = parseInt(countEl.textContent) || 0;
+    countEl.textContent = `${cur + 1} file${cur + 1 !== 1 ? 's' : ''}`;
+  }
+  showTypingBadge('New resource shared!', 3000);
+}
+
 /* ── File upload ── */
 function handleDragOver(e) {
   e.preventDefault();
@@ -762,18 +887,7 @@ async function sendMessage() {
     const data = await res.json();
     if (res.ok) {
       input.value = '';
-      const list = document.getElementById('chatMessages');
-      if (list) {
-        const div = document.createElement('div');
-        div.className = 'msg';
-        const user = JSON.parse(localStorage.getItem('ss_user') || '{}');
-        const name = user.first_name ? user.first_name + ' ' + (user.last_name || '') : 'You';
-        const initial = name.charAt(0).toUpperCase();
-        const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-        div.innerHTML = `<div class="msg-av" style="background:linear-gradient(135deg,#a855f7,#ec4899)">${initial}</div><div class="msg-body"><div class="msg-meta"><span class="msg-name">${name.trim()}</span><span class="msg-time"> ${time}</span></div><div class="msg-text">${data.message.content.replace(/</g,'&lt;')}</div></div>`;
-        list.appendChild(div);
-        list.scrollTop = list.scrollHeight;
-      }
+      appendMessage(data.message);
     }
   } catch(e) { showToast('❌','Failed to send'); }
 }
@@ -798,8 +912,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (path.includes('room')) {
-    loadRoom();
+    fetch('/api/config').then(r=>r.json()).then(cfg=>{
+      window.PUSHER_KEY     = cfg.pusherKey;
+      window.PUSHER_CLUSTER = cfg.pusherCluster;
+    }).catch(()=>{}).finally(() => loadRoom());
     const chatInput = document.getElementById('chatInputField');
-    if (chatInput) chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+    if (chatInput) {
+      let _typingSent = false;
+      chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { sendMessage(); _typingSent = false; return; }
+        if (!_typingSent) {
+          _typingSent = true;
+          const roomId = new URLSearchParams(window.location.search).get('id');
+          fetch(`/api/rooms/${roomId}/typing`, { method: 'POST', credentials: 'include' }).catch(()=>{});
+          setTimeout(() => { _typingSent = false; }, 2000);
+        }
+      });
+    }
   }
 });

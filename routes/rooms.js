@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt     = require('jsonwebtoken');
 const sql     = require('../db');
+const pusher  = require('../lib/pusher');
 
 const router = express.Router();
 
@@ -120,6 +121,9 @@ router.post('/:id/join', async (req, res) => {
       INSERT INTO room_members (room_id, user_id) VALUES (${req.params.id}, ${user.id})
       ON CONFLICT DO NOTHING
     `;
+    pusher.trigger(`room-${req.params.id}`, 'member-joined', {
+      id: user.id, first_name: user.first_name, last_name: user.last_name
+    });
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to join room' });
@@ -144,10 +148,26 @@ router.put('/:id/notes', async (req, res) => {
   const { notes } = req.body;
   try {
     await sql`UPDATE study_rooms SET notes = ${notes || ''} WHERE id = ${req.params.id}`;
+    pusher.trigger(`room-${req.params.id}`, 'notes-update', {
+      notes: notes || '',
+      updated_by: user.id,
+      updated_by_name: `${user.first_name || ''} ${user.last_name || ''}`.trim()
+    });
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to save notes' });
   }
+});
+
+// POST /api/rooms/:id/typing
+router.post('/:id/typing', (req, res) => {
+  const user = getUser(req);
+  if (!user) return res.status(401).json({ error: 'Login required' });
+  pusher.trigger(`room-${req.params.id}`, 'typing', {
+    user_id: user.id,
+    name: `${user.first_name || ''}`.trim()
+  });
+  res.json({ ok: true });
 });
 
 // GET /api/rooms/:id/whiteboard
@@ -168,6 +188,10 @@ router.put('/:id/whiteboard', async (req, res) => {
   const { data } = req.body;
   try {
     await sql`UPDATE study_rooms SET whiteboard_data = ${data || null} WHERE id = ${req.params.id}`;
+    pusher.trigger(`room-${req.params.id}`, 'whiteboard-update', {
+      data: data || null,
+      updated_by: user.id
+    });
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Failed to save whiteboard' });

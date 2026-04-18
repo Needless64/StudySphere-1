@@ -3,6 +3,7 @@ const jwt     = require('jsonwebtoken');
 const multer  = require('multer');
 const path    = require('path');
 const sql     = require('../db');
+const pusher  = require('../lib/pusher');
 
 const router = express.Router({ mergeParams: true });
 
@@ -61,7 +62,9 @@ router.post('/', upload.single('file'), async (req, res) => {
       UPDATE user_stats SET resources_shared = resources_shared + 1
       WHERE user_id = ${user.id}
     `;
-    res.status(201).json({ resource });
+    const full = { ...resource, shared_by: `${user.first_name || ''} ${user.last_name || ''}`.trim() };
+    pusher.trigger(`room-${req.params.roomId}`, 'new-resource', full);
+    res.status(201).json({ resource: full });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Failed to save resource' });

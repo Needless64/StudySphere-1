@@ -21,12 +21,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc:    ["'self'"],
-      scriptSrc:     ["'self'", "'unsafe-inline'"],
+      scriptSrc:     ["'self'", "'unsafe-inline'", 'https://js.pusher.com'],
       scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc:      ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       fontSrc:       ["'self'", 'https://fonts.gstatic.com'],
       imgSrc:        ["'self'", 'data:', 'https:'],
-      connectSrc:    ["'self'"],
+      connectSrc:    ["'self'", 'wss://*.pusher.com', 'https://*.pusher.com', 'https://sockjs-mt1.pusher.com'],
     },
   },
 }));
@@ -38,6 +38,13 @@ app.use(limiter);
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+
+app.get('/api/config', (req, res) => {
+  res.json({
+    pusherKey:     process.env.PUSHER_KEY     || '',
+    pusherCluster: process.env.PUSHER_CLUSTER || '',
+  });
+});
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/rooms',                     roomRoutes);
