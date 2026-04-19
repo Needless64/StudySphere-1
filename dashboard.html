@@ -1004,7 +1004,7 @@
       const av = document.getElementById('userAvatar');
       const user = JSON.parse(localStorage.getItem('ss_user') || '{}');
       if (user.avatar_url) {
-        av.innerHTML = `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:9px">`;
+        av.innerHTML = `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" onerror="this.style.display='none';this.parentNode.textContent='${name.charAt(0).toUpperCase()}'">`;
       } else {
         av.textContent = name.charAt(0).toUpperCase();
       }
@@ -1160,7 +1160,7 @@
     function commAv(u, i) {
       const letter = (u.first_name||'?').charAt(0).toUpperCase();
       const g = grads[i % grads.length];
-      if (u.avatar_url) return `<img src="${u.avatar_url}" class="comm-av" style="background:${g};object-fit:cover" onerror="this.outerHTML='<div class=\\'comm-av\\' style=\\'background:${g}\\'>${letter}</div>'">`;
+      if (u.avatar_url) return `<div class="comm-av" style="background:${g};padding:0;overflow:hidden"><img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.textContent='${letter}'"></div>`;
       return `<div class="comm-av" style="background:${g}">${letter}</div>`;
     }
     function renderSrPanel(id, rooms, isMy) {
@@ -1410,7 +1410,8 @@
       const el = document.getElementById('settingsAvatarEl');
       if (!el) return;
       if (url) {
-        el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`;
+        const fb = (firstName || localStorage.getItem('ss_user_name') || '?').charAt(0).toUpperCase();
+        el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px" onerror="this.style.display='none';this.parentNode.textContent='${fb}'">`;
       } else {
         el.textContent = (firstName || localStorage.getItem('ss_user_name') || '?').charAt(0).toUpperCase();
       }

@@ -722,9 +722,11 @@ function renderMembers(members) {
     const makeOwnerBtn = (iAmHost && !isMe)
       ? `<button onclick="transferHost(${m.id})" title="Transfer room ownership" style="margin-left:auto;background:none;border:1px solid rgba(167,139,250,0.4);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;">Make Owner</button>`
       : '';
-    const avHtml = m.avatar_url
-      ? `<img src="${m.avatar_url}" style="width:30px;height:30px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=\\"member-av\\" style=\\"background:${grads[i%grads.length]}\\">${initial}</div>'">`
-      : `<div class="member-av" style="background:${grads[i % grads.length]}">${initial}</div>`;
+    const avHtml = `<div class="member-av" style="background:${grads[i%grads.length]};padding:0;overflow:hidden">${
+      m.avatar_url
+        ? `<img src="${m.avatar_url}" style="width:30px;height:30px;object-fit:cover;border-radius:8px;display:block" onerror="this.style.display='none';this.parentNode.textContent='${initial}'">`
+        : initial
+    }</div>`;
     return `<div class="member" data-member-id="${m.id}" style="display:flex;align-items:center;gap:8px">
       <div style="position:relative;flex-shrink:0">
         ${avHtml}
