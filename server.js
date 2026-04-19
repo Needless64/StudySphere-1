@@ -6,11 +6,16 @@ const helmet       = require('helmet');
 const rateLimit    = require('express-rate-limit');
 const path         = require('path');
 
-const authRoutes      = require('./routes/auth');
-const roomRoutes      = require('./routes/rooms');
-const messageRoutes   = require('./routes/messages');
-const resourceRoutes  = require('./routes/resources');
-const statsRoutes     = require('./routes/stats');
+const authRoutes        = require('./routes/auth');
+const roomRoutes        = require('./routes/rooms');
+const messageRoutes     = require('./routes/messages');
+const resourceRoutes    = require('./routes/resources');
+const statsRoutes       = require('./routes/stats');
+const communityRoutes   = require('./routes/community');
+const analyticsRoutes   = require('./routes/analytics');
+const settingsRoutes    = require('./routes/settings');
+const myResourcesRoutes    = require('./routes/my-resources');
+const notificationsRoutes  = require('./routes/notifications');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -46,11 +51,16 @@ app.get('/api/config', (req, res) => {
   });
 });
 
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/rooms',                     roomRoutes);
-app.use('/api/rooms/:roomId/messages',    messageRoutes);
-app.use('/api/rooms/:roomId/resources',   resourceRoutes);
-app.use('/api/stats',                     statsRoutes);
+app.use('/api/auth',         authLimiter, authRoutes);
+app.use('/api/rooms',                         roomRoutes);
+app.use('/api/rooms/:roomId/messages',        messageRoutes);
+app.use('/api/rooms/:roomId/resources',       resourceRoutes);
+app.use('/api/stats',                         statsRoutes);
+app.use('/api/community',                     communityRoutes);
+app.use('/api/analytics',                     analyticsRoutes);
+app.use('/api/settings',                      settingsRoutes);
+app.use('/api/my-resources',                  myResourcesRoutes);
+app.use('/api/notifications',                 notificationsRoutes);
 
 app.use(express.static(path.join(__dirname)));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

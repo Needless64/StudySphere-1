@@ -42,11 +42,8 @@ router.post('/', async (req, res) => {
       VALUES (${req.params.roomId}, ${user.id}, ${content.trim()})
       RETURNING *
     `;
-    // Update study time stat (1 message = 1 min activity)
-    await sql`
-      UPDATE user_stats SET total_study_mins = total_study_mins + 1
-      WHERE user_id = ${user.id}
-    `;
+    await sql`UPDATE user_stats SET total_study_mins = total_study_mins + 1 WHERE user_id = ${user.id}`;
+    await sql`UPDATE study_rooms SET last_activity = NOW() WHERE id = ${req.params.roomId}`;
     const fullMsg = { ...msg, sender_name: `${user.first_name || 'User'} ${user.last_name || ''}`.trim() };
     await pusher.trigger(`room-${req.params.roomId}`, 'new-message', fullMsg);
     res.status(201).json({ message: fullMsg });

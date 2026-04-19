@@ -369,14 +369,14 @@
       <div class="room-subject-badge" id="roomSubject">General</div>
       <div class="live-badge"><div class="live-dot"></div><span id="memberCount">1 Live</span></div>
       <div class="tb-actions">
-        <button class="tb-btn">
+        <button class="tb-btn" id="inviteBtn" onclick="copyRoomLink(this)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
           Invite
         </button>
-        <button class="tb-btn">
+        <button class="tb-btn" id="shareBtn" onclick="copyRoomLink(this)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
             <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
@@ -855,6 +855,12 @@
       timerBtnIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
       playAlarm();
       if (currentMode === 'focus') {
+        const focusMins = Math.max(1, Math.round(totalSecs / 60));
+        fetch('/api/stats/session', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ minutes: focusMins })
+        }).catch(() => {});
         completedSess++;
         localStorage.setItem('ss_completed_sessions', completedSess);
         completedLabel.textContent = completedSess + (completedSess === 1 ? ' session' : ' sessions');
@@ -1107,6 +1113,17 @@
         notesSaveTimer = setTimeout(saveNotesNow, 1000);
       });
       loadNotes();
+    }
+
+    function copyRoomLink(btn) {
+      const url = window.location.href.split('?')[0] + '?id=' + new URLSearchParams(window.location.search).get('id');
+      navigator.clipboard.writeText(url).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = btn.innerHTML.replace(/Invite|Share/, '✓ Copied!');
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      }).catch(() => {
+        prompt('Copy this link:', url);
+      });
     }
   </script>
 </body>

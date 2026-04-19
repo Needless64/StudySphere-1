@@ -126,7 +126,7 @@
     .sc3::before { background: linear-gradient(90deg,var(--cyan),#67e8f9); }
     .sc4::before { background: linear-gradient(90deg,var(--lime),#d9f99d); }
     .stat-icon-svg { margin-bottom: 10px; opacity: 0.5; }
-    .stat-val   { font-family: 'Playfair Display',serif; font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.15); }
+    .stat-val   { font-family: 'Inter',sans-serif; font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.15); font-variant-numeric: tabular-nums; }
     .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .stat-hint  { font-size: 11px; color: rgba(124,58,237,0.45); margin-top: 5px; font-style: italic; }
 
@@ -306,6 +306,30 @@
     }
     .create-room-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,0.5); }
 
+    /* ── Notifications ── */
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+    .notif-btn { position:relative; background:rgba(255,255,255,0.05); border:1px solid rgba(139,92,246,0.2); border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#a78bfa; transition:background .15s; }
+    .notif-btn:hover { background:rgba(139,92,246,0.12); }
+    .notif-badge { position:absolute; top:-5px; right:-5px; min-width:17px; height:17px; background:#ec4899; color:#fff; font-size:10px; font-weight:700; border-radius:99px; display:flex; align-items:center; justify-content:center; padding:0 3px; border:2px solid #0d0b1a; }
+    .notif-panel { position:absolute; top:56px; right:0; width:340px; background:#160e2e; border:1px solid rgba(139,92,246,0.2); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,0.5); z-index:200; overflow:hidden; display:none; }
+    .notif-panel.open { display:block; }
+    .notif-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid rgba(139,92,246,0.1); }
+    .notif-header-title { font-size:13px; font-weight:700; color:#e2d9f3; }
+    .notif-mark-read { font-size:11px; color:#a78bfa; cursor:pointer; background:none; border:none; }
+    .notif-mark-read:hover { color:#c4b5fd; }
+    .notif-list { max-height:360px; overflow-y:auto; }
+    .notif-item { display:flex; gap:12px; align-items:flex-start; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); cursor:pointer; transition:background .12s; }
+    .notif-item:hover { background:rgba(139,92,246,0.07); }
+    .notif-item.unread { background:rgba(124,58,237,0.06); }
+    .notif-icon { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .notif-icon.friend_request { background:rgba(139,92,246,0.15); }
+    .notif-icon.friend_accepted { background:rgba(34,197,94,0.12); }
+    .notif-icon.friend_in_room { background:rgba(6,182,212,0.12); }
+    .notif-title { font-size:12px; font-weight:600; color:#e2d9f3; line-height:1.3; }
+    .notif-body { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.4; }
+    .notif-time { font-size:10px; color:var(--muted); margin-top:4px; }
+    .notif-empty { text-align:center; padding:32px 16px; font-size:13px; color:var(--muted); }
+
     /* ── Create Room Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 1000;
@@ -398,6 +422,119 @@
     /* ── Room card polish ── */
     .room-card { transition: border-color .2s, box-shadow .2s, transform .2s; }
     .room-card:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(124,58,237,0.14); }
+
+    /* ══ SPA Section styles ══ */
+    .sec-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .sec-tabs { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid rgba(139,92,246,0.12); padding-bottom:2px; }
+    .sec-tab { background:none; border:none; color:var(--muted); font-size:13px; font-weight:500; padding:8px 16px; cursor:pointer; border-radius:8px 8px 0 0; border-bottom:2px solid transparent; transition:all .2s; }
+    .sec-tab:hover { color:#c4b5fd; }
+    .sec-tab.active { color:#c4b5fd; border-bottom-color:var(--purple-l); background:rgba(124,58,237,0.07); }
+
+    /* Study Rooms section */
+    .sr-room-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+    .sr-card { background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.15); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:10px; cursor:pointer; transition:border-color .2s,transform .2s; }
+    .sr-card:hover { border-color:rgba(139,92,246,0.4); transform:translateY(-2px); }
+    .sr-card-header { display:flex; align-items:center; gap:12px; }
+    .sr-card-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sr-card-name { font-size:14px; font-weight:600; color:#e2d9f3; }
+    .sr-card-meta { font-size:12px; color:var(--muted); margin-top:2px; }
+    .sr-card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
+    .sr-card-badge { font-size:10px; font-weight:600; letter-spacing:.5px; padding:3px 8px; border-radius:99px; }
+    .sr-enter-btn { font-size:12px; font-weight:600; padding:5px 14px; border-radius:8px; border:none; background:rgba(124,58,237,0.18); color:#c4b5fd; cursor:pointer; transition:background .2s; }
+    .sr-enter-btn:hover { background:rgba(124,58,237,0.35); }
+
+    /* Community section */
+    .comm-user-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+    .comm-card { background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.12); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:10px; }
+    .comm-card-top { display:flex; align-items:center; gap:12px; }
+    .comm-av { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; flex-shrink:0; }
+    .comm-name { font-size:13px; font-weight:600; color:#e2d9f3; }
+    .level-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; background:rgba(124,58,237,0.2); color:#a78bfa; border:1px solid rgba(167,139,250,0.25); margin-top:2px; }
+    .comm-xp { font-size:11px; color:var(--muted); }
+    .comm-action-btn { width:100%; padding:7px; border-radius:8px; border:none; font-size:12px; font-weight:600; cursor:pointer; transition:background .2s; }
+    .btn-add { background:rgba(124,58,237,0.15); color:#a78bfa; border:1px solid rgba(167,139,250,0.3); }
+    .btn-add:hover { background:rgba(124,58,237,0.3); }
+    .btn-pending { background:rgba(100,116,139,0.1); color:var(--muted); border:1px solid rgba(100,116,139,0.2); cursor:default; }
+    .btn-friends { background:rgba(34,197,94,0.1); color:#4ade80; border:1px solid rgba(34,197,94,0.2); cursor:default; }
+    .btn-accept { background:rgba(34,197,94,0.12); color:#4ade80; border:1px solid rgba(34,197,94,0.25); }
+    .sugg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+    .sugg-card { background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.14); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:14px; transition:border-color .2s,transform .15s; }
+    .sugg-card:hover { border-color:rgba(167,139,250,0.35); transform:translateY(-2px); }
+    .sugg-reason { font-size:12px; color:#a78bfa; line-height:1.4; font-style:italic; }
+    .sugg-detail { font-size:11px; color:var(--muted); margin-top:2px; }
+    .sugg-empty { text-align:center; padding:48px 20px; color:var(--muted); font-size:14px; }
+    /* ── Presence status ── */
+    .presence-dot { width:10px; height:10px; border-radius:50%; border:2px solid #0d0b1a; flex-shrink:0; position:relative; }
+    .presence-dot.online  { background:#23a55a; }
+    .presence-dot.idle    { background:#f0b232; box-shadow:inset 3px -2px 0 1px #0d0b1a; }
+    .presence-dot.dnd     { background:#f23f43; }
+    .presence-dot.dnd::after { content:''; position:absolute; left:1px; right:1px; top:50%; transform:translateY(-50%); height:2px; background:#fff; border-radius:1px; }
+    .presence-dot.offline { background:#80848e; }
+    .status-picker { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .status-opt { display:flex; align-items:center; gap:7px; padding:8px 14px; border-radius:10px; border:1px solid rgba(139,92,246,0.2); background:rgba(255,255,255,0.03); cursor:pointer; font-size:12px; font-weight:600; color:#a9a3c9; transition:all .15s; }
+    .status-opt:hover { border-color:rgba(139,92,246,0.4); background:rgba(139,92,246,0.08); }
+    .status-opt.active { border-color:rgba(139,92,246,0.5); background:rgba(139,92,246,0.15); color:#e2d9f3; }
+    .btn-accept:hover { background:rgba(34,197,94,0.25); }
+    .btn-decline { background:rgba(239,68,68,0.08); color:#f87171; border:1px solid rgba(239,68,68,0.2); }
+    .btn-decline:hover { background:rgba(239,68,68,0.2); }
+    .comm-req-actions { display:flex; gap:6px; }
+    .comm-req-actions .comm-action-btn { flex:1; }
+
+    /* Resources section */
+    .res-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+    .res-card { background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.12); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:8px; }
+    .res-type-icon { font-size:22px; }
+    .res-card-title { font-size:13px; font-weight:600; color:#e2d9f3; }
+    .res-room-tag { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:#a78bfa; background:rgba(124,58,237,0.12); border:1px solid rgba(167,139,250,0.2); border-radius:6px; padding:2px 8px; cursor:pointer; }
+    .res-room-tag:hover { background:rgba(124,58,237,0.25); }
+    .res-card-actions { display:flex; gap:6px; margin-top:4px; }
+    .res-btn { flex:1; padding:6px; border-radius:8px; border:none; font-size:11px; font-weight:600; cursor:pointer; transition:background .2s; }
+    .res-btn-open { background:rgba(124,58,237,0.15); color:#a78bfa; border:1px solid rgba(167,139,250,0.25); }
+    .res-btn-open:hover { background:rgba(124,58,237,0.3); }
+    .res-btn-save { background:rgba(236,72,153,0.1); color:#f472b6; border:1px solid rgba(236,72,153,0.25); }
+    .res-btn-save:hover { background:rgba(236,72,153,0.25); }
+    .res-btn-unsave { background:rgba(239,68,68,0.08); color:#f87171; border:1px solid rgba(239,68,68,0.2); }
+    .res-btn-goto { background:rgba(6,182,212,0.1); color:#67e8f9; border:1px solid rgba(6,182,212,0.2); }
+    .res-btn-goto:hover { background:rgba(6,182,212,0.2); }
+
+    /* Analytics section */
+    .analytics-hero { background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(236,72,153,0.1)); border:1px solid rgba(139,92,246,0.25); border-radius:20px; padding:32px; margin-bottom:24px; display:flex; align-items:center; gap:32px; flex-wrap:wrap; }
+    .level-circle { width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#ec4899); display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 32px rgba(124,58,237,0.4); }
+    .level-num { font-size:32px; font-weight:900; color:#fff; line-height:1; }
+    .level-lbl { font-size:10px; font-weight:700; letter-spacing:1.5px; color:rgba(255,255,255,0.7); }
+    .level-info { flex:1; }
+    .level-title { font-size:22px; font-weight:700; color:#e2d9f3; margin-bottom:4px; }
+    .level-sub { font-size:13px; color:var(--muted); margin-bottom:14px; }
+    .xp-bar-wrap { height:8px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden; margin-bottom:6px; }
+    .xp-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#7c3aed,#ec4899); transition:width .6s; }
+    .xp-label { font-size:11px; color:var(--muted); }
+    .analytics-stats { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:24px; }
+    .an-stat { background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.12); border-radius:14px; padding:18px; text-align:center; }
+    .an-stat-val { font-size:26px; font-weight:800; color:#e2d9f3; font-variant-numeric: tabular-nums; }
+    .an-stat-lbl { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:.5px; }
+    .leaderboard-list { display:flex; flex-direction:column; gap:8px; }
+    .lb-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(139,92,246,0.1); border-radius:12px; }
+    .lb-row.lb-me { border-color:rgba(167,139,250,0.4); background:rgba(124,58,237,0.08); }
+    .lb-rank { width:28px; font-size:14px; font-weight:800; color:var(--muted); text-align:center; flex-shrink:0; }
+    .lb-rank.top3 { color:#f59e0b; }
+    .lb-name { flex:1; font-size:13px; font-weight:600; color:#e2d9f3; }
+    .lb-xp { font-size:12px; color:var(--muted); }
+
+    /* Settings section */
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    @media(max-width:700px) { .settings-grid { grid-template-columns:1fr; } }
+    .settings-form { display:flex; flex-direction:column; gap:14px; margin-top:8px; }
+    .sfield { display:flex; flex-direction:column; gap:5px; }
+    .sfield label { font-size:11px; font-weight:600; letter-spacing:.8px; color:var(--muted); text-transform:uppercase; }
+    .sfield input { background:rgba(255,255,255,0.05); border:1px solid rgba(139,92,246,0.2); border-radius:10px; padding:10px 14px; color:#e2e8f0; font-size:13px; outline:none; transition:border-color .2s; }
+    .sfield input:focus { border-color:rgba(167,139,250,0.5); }
+    .settings-save-btn { align-self:flex-start; padding:9px 22px; border-radius:10px; border:none; background:linear-gradient(135deg,#7c3aed,#ec4899); color:#fff; font-size:13px; font-weight:700; cursor:pointer; transition:opacity .2s; }
+    .settings-save-btn:hover { opacity:.85; }
+
+    /* Empty state reuse */
+    .sec-empty { text-align:center; padding:60px 20px; color:var(--muted); }
+    .sec-empty svg { margin-bottom:14px; opacity:.4; }
+    .sec-empty p { font-size:14px; }
   </style>
 </head>
 <body>
@@ -484,37 +621,40 @@
         </div>
       </div>
       <nav class="nav">
-        <a class="nav-item active" href="dashboard.html">
+        <a class="nav-item active" href="#" onclick="showSection('home')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
           Dashboard
         </a>
-        <a class="nav-item" href="#" onclick="openCreateRoom()">
+        <a class="nav-item" href="#" onclick="showSection('study-rooms')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
           Study Rooms
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="#" onclick="showSection('community')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
           Community
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="#" onclick="showSection('resources')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
           Resources
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="#" onclick="showSection('analytics')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>
           Analytics
         </a>
-        <a class="nav-item" href="#">
+        <a class="nav-item" href="#" onclick="showSection('settings')">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 1 21.93 12M4.93 4.93A10 10 0 0 0 2.07 12m0 0a10 10 0 0 0 2.86 7.07M19.07 19.07A10 10 0 0 0 21.93 12"/></svg></span>
           Settings
         </a>
       </nav>
       <div class="sidebar-footer">
         <div class="user-chip">
-          <div class="avatar" id="userAvatar">S</div>
+          <div style="position:relative;flex-shrink:0">
+            <div class="avatar" id="userAvatar">S</div>
+            <div class="presence-dot offline" id="sidebarStatusDot" style="position:absolute;bottom:-1px;right:-1px"></div>
+          </div>
           <div class="user-info">
             <strong id="userName" class="welcome-name">Student</strong>
-            <span>Free Plan · Day 1</span>
+            <span id="sidebarStatusLabel">Free Plan · Day 1</span>
           </div>
         </div>
       </div>
@@ -523,20 +663,38 @@
     <!-- Main -->
     <main class="main">
 
-      <div class="topbar">
+      <div class="topbar" style="position:relative">
         <div>
           <div id="pageGreeting"></div>
           <div class="page-title" id="pageTitle">Dashboard</div>
           <div class="page-sub" id="pageSub">Loading your workspace…</div>
         </div>
-        <button class="create-room-btn" onclick="openCreateRoom()">
-          <span class="btn-shine"></span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Create Room
-        </button>
+        <div class="topbar-right">
+          <div style="position:relative">
+            <button class="notif-btn" id="notifBtn" onclick="toggleNotifPanel()" title="Notifications">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+            </button>
+            <div class="notif-panel" id="notifPanel">
+              <div class="notif-header">
+                <span class="notif-header-title">Notifications</span>
+                <button class="notif-mark-read" onclick="markNotifsRead()">Mark all read</button>
+              </div>
+              <div class="notif-list" id="notifList"><div class="notif-empty">No notifications yet</div></div>
+            </div>
+          </div>
+          <button class="create-room-btn" onclick="openCreateRoom()">
+            <span class="btn-shine"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Create Room
+          </button>
+        </div>
       </div>
+
+      <!-- ══ SECTION: HOME (default) ══ -->
+      <div id="sec-home">
 
       <!-- Welcome Banner -->
       <div class="welcome-banner fade-up">
@@ -558,7 +716,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Create a Study Room
             </button>
-            <button class="ba-ghost">
+            <button class="ba-ghost" onclick="showSection('community');switchCommunityTab('suggestions',null)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               Find Classmates
             </button>
@@ -684,10 +842,94 @@
         </div>
       </div>
 
+      </div><!-- /sec-home -->
+
+      <!-- ══ SECTION: STUDY ROOMS ══ -->
+      <div id="sec-study-rooms" style="display:none">
+        <div class="sec-tabs">
+          <button class="sec-tab active" onclick="switchRoomsTab('my',this)">My Rooms</button>
+          <button class="sec-tab" onclick="switchRoomsTab('public',this)">Public Rooms</button>
+        </div>
+        <div id="sr-my-rooms" class="sr-panel"></div>
+        <div id="sr-public-rooms" class="sr-panel" style="display:none"></div>
+      </div>
+
+      <!-- ══ SECTION: COMMUNITY ══ -->
+      <div id="sec-community" style="display:none">
+        <div class="sec-tabs">
+          <button class="sec-tab active" onclick="switchCommunityTab('members',this)">Members</button>
+          <button class="sec-tab" onclick="switchCommunityTab('suggestions',this)">✨ Suggestions</button>
+          <button class="sec-tab" onclick="switchCommunityTab('friends',this)">Friends</button>
+          <button class="sec-tab" onclick="switchCommunityTab('requests',this)">Requests <span id="comm-req-badge" style="display:none;background:#ec4899;color:#fff;border-radius:99px;padding:0 5px;font-size:10px;margin-left:3px">0</span></button>
+        </div>
+        <div id="comm-search-wrap" style="margin:16px 0">
+          <input id="communitySearch" type="text" placeholder="Search members…" oninput="debounceCommunitySearch()" style="width:100%;max-width:380px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;padding:9px 14px;color:#e2e8f0;font-size:13px;outline:none">
+        </div>
+        <div id="comm-members" class="comm-panel"></div>
+        <div id="comm-suggestions" class="comm-panel" style="display:none"></div>
+        <div id="comm-friends" class="comm-panel" style="display:none"></div>
+        <div id="comm-requests" class="comm-panel" style="display:none"></div>
+      </div>
+
+      <!-- ══ SECTION: RESOURCES ══ -->
+      <div id="sec-resources" style="display:none">
+        <div class="sec-tabs">
+          <button class="sec-tab active" onclick="switchResourcesTab('my',this)">My Uploads</button>
+          <button class="sec-tab" onclick="switchResourcesTab('saved',this)">Saved</button>
+        </div>
+        <div id="res-my" class="res-panel"></div>
+        <div id="res-saved" class="res-panel" style="display:none"></div>
+      </div>
+
+      <!-- ══ SECTION: ANALYTICS ══ -->
+      <div id="sec-analytics" style="display:none">
+        <div id="analytics-content"></div>
+      </div>
+
+      <!-- ══ SECTION: SETTINGS ══ -->
+      <div id="sec-settings" style="display:none">
+        <div class="settings-grid">
+          <div class="panel">
+            <div class="panel-title">Profile</div>
+            <div class="settings-form">
+              <div class="sfield"><label>First Name</label><input id="sFirstName" type="text" placeholder="First name"/></div>
+              <div class="sfield"><label>Last Name</label><input id="sLastName" type="text" placeholder="Last name"/></div>
+              <div class="sfield"><label>Email</label><input id="sEmail" type="email" placeholder="Email"/></div>
+              <button class="settings-save-btn" onclick="saveProfile()">Save Changes</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Change Password</div>
+            <div class="settings-form">
+              <div class="sfield"><label>Current Password</label><input id="sCurrentPw" type="password" placeholder="Current password"/></div>
+              <div class="sfield"><label>New Password</label><input id="sNewPw" type="password" placeholder="New password (min 6 chars)"/></div>
+              <button class="settings-save-btn" onclick="savePassword()">Update Password</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Status</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Visible to other members. Always shows offline when you close the tab.</div>
+            <div class="status-picker" id="statusPicker">
+              <div class="status-opt" data-status="online"  onclick="setMyStatus('online')"><div class="presence-dot online"></div>Online</div>
+              <div class="status-opt" data-status="idle"    onclick="setMyStatus('idle')"><div class="presence-dot idle"></div>Idle</div>
+              <div class="status-opt" data-status="dnd"     onclick="setMyStatus('dnd')"><div class="presence-dot dnd"></div>Do Not Disturb</div>
+              <div class="status-opt" data-status="offline" onclick="setMyStatus('offline')"><div class="presence-dot offline"></div>Invisible</div>
+            </div>
+          </div>
+          <div class="panel" style="grid-column:1/-1">
+            <div class="panel-title">Account</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
+              <button onclick="logout()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:10px;padding:10px 20px;font-size:13px;cursor:pointer;font-weight:600">Sign Out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
-  <script src="script.js"></script>
+  <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+  <script src="script.js?v=3"></script>
   <script>
     let selectedType = 'private';
 
@@ -754,7 +996,459 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       initUserName();
+      loadNotifications();
+      initNotifPusher();
     });
+
+    /* ── Notifications ── */
+    const NOTIF_ICONS = { friend_request:'👋', friend_accepted:'🎉', friend_in_room:'📚' };
+    function timeAgo(ts) {
+      const s = Math.floor((Date.now() - new Date(ts)) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return Math.floor(s/60) + 'm ago';
+      if (s < 86400) return Math.floor(s/3600) + 'h ago';
+      return Math.floor(s/86400) + 'd ago';
+    }
+    async function loadNotifications() {
+      try {
+        const r = await fetch('/api/notifications', { credentials:'include' });
+        if (!r.ok) return;
+        const { notifications, unread } = await r.json();
+        const badge = document.getElementById('notifBadge');
+        if (badge) { badge.textContent = unread > 9 ? '9+' : unread; badge.style.display = unread ? 'flex' : 'none'; }
+        renderNotifList(notifications);
+      } catch(e) {}
+    }
+    function renderNotifList(notifs) {
+      const el = document.getElementById('notifList');
+      if (!el) return;
+      if (!notifs.length) { el.innerHTML = '<div class="notif-empty">No notifications yet 🔕</div>'; return; }
+      el.innerHTML = notifs.map(n => `
+        <div class="notif-item ${n.is_read?'':'unread'}" onclick="handleNotifClick(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+          <div class="notif-icon ${n.type}">${NOTIF_ICONS[n.type]||'🔔'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="notif-title">${n.title}</div>
+            ${n.body ? `<div class="notif-body">${n.body}</div>` : ''}
+            <div class="notif-time">${timeAgo(n.created_at)}</div>
+          </div>
+          ${!n.is_read ? '<div style="width:7px;height:7px;border-radius:50%;background:#a78bfa;flex-shrink:0;margin-top:4px"></div>' : ''}
+        </div>`).join('');
+    }
+    function handleNotifClick(n) {
+      if (n.type === 'friend_request' || n.type === 'friend_accepted') { toggleNotifPanel(); showSection('community'); switchCommunityTab('requests', null); }
+      else if (n.type === 'friend_in_room' && n.data?.room_id) { window.location.href = `room.html?id=${n.data.room_id}`; }
+    }
+    function toggleNotifPanel() {
+      const p = document.getElementById('notifPanel');
+      p.classList.toggle('open');
+      if (p.classList.contains('open')) markNotifsRead();
+    }
+    async function markNotifsRead() {
+      await fetch('/api/notifications/read', { method:'PUT', credentials:'include' });
+      const badge = document.getElementById('notifBadge');
+      if (badge) badge.style.display = 'none';
+      document.querySelectorAll('.notif-item.unread').forEach(el => { el.classList.remove('unread'); el.querySelector('[style*="border-radius:50%"]')?.remove(); });
+    }
+    async function initNotifPusher() {
+      try {
+        const cfg = await fetch('/api/config').then(r=>r.json());
+        if (!cfg.pusherKey) return;
+        const p = new Pusher(cfg.pusherKey, { cluster: cfg.pusherCluster });
+        const uid = currentUserId();
+        if (!uid) return;
+        p.subscribe(`notify-${uid}`).bind('notification', (data) => {
+          loadNotifications();
+          if ((localStorage.getItem('ss_status')||'online') !== 'dnd') {
+            showToast(data.title, data.body, NOTIF_ICONS[data.type]||'🔔');
+          }
+        });
+      } catch(e) {}
+    }
+    let _toastTimer;
+    function showToast(title, body, icon='🔔') {
+      let t = document.getElementById('notif-toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'notif-toast';
+        t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1a1035;border:1px solid rgba(139,92,246,0.3);border-radius:14px;padding:14px 18px;max-width:320px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:flex;gap:12px;align-items:flex-start;transition:opacity .3s,transform .3s;opacity:0;transform:translateY(10px)';
+        document.body.appendChild(t);
+      }
+      t.innerHTML = `<span style="font-size:20px">${icon}</span><div><div style="font-size:13px;font-weight:600;color:#e2d9f3">${title}</div>${body?`<div style="font-size:11px;color:#8b8aad;margin-top:3px">${body}</div>`:''}</div>`;
+      t.style.opacity = '1'; t.style.transform = 'translateY(0)';
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(10px)'; }, 4000);
+    }
+    // Close notif panel when clicking outside
+    document.addEventListener('click', e => {
+      const panel = document.getElementById('notifPanel');
+      const btn = document.getElementById('notifBtn');
+      if (panel?.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('open');
+    });
+
+    /* ══ SPA section switcher ══ */
+    const SECTIONS = ['home','study-rooms','community','resources','analytics','settings'];
+    function showSection(name) {
+      SECTIONS.forEach(s => {
+        document.getElementById('sec-' + s).style.display = s === name ? '' : 'none';
+      });
+      document.querySelectorAll('.nav-item').forEach((el, i) => {
+        el.classList.toggle('active', SECTIONS[i] === name);
+      });
+      const titles = { home:'Dashboard', 'study-rooms':'Study Rooms', community:'Community', resources:'Resources', analytics:'Analytics', settings:'Settings' };
+      const subs = { home:"Here's what's happening in your study network today.", 'study-rooms':'Your rooms and all public rooms', community:'Friends, classmates and the leaderboard', resources:'Files and links you\'ve uploaded or saved', analytics:'Your progress and leaderboard', settings:'Manage your profile and account' };
+      const greetEl2 = document.getElementById('pageGreeting');
+      const titleEl2 = document.getElementById('pageTitle');
+      const subEl2   = document.getElementById('pageSub');
+      if (name === 'home') {
+        const h = new Date().getHours();
+        const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+        const uname = localStorage.getItem('ss_user_name') || 'Student';
+        if (greetEl2) greetEl2.textContent = greeting;
+        if (titleEl2) titleEl2.textContent = greeting + ', ' + uname + ' 👋';
+      } else {
+        if (greetEl2) greetEl2.textContent = '';
+        if (titleEl2) titleEl2.textContent = titles[name] || name;
+      }
+      if (subEl2) subEl2.textContent = subs[name] || '';
+      const createBtn = document.querySelector('.topbar .create-room-btn');
+      if (createBtn) createBtn.style.display = (name === 'home' || name === 'study-rooms') ? '' : 'none';
+      if (name === 'study-rooms')  loadStudyRooms();
+      if (name === 'community')    loadCommunity();
+      if (name === 'resources')    loadResources();
+      if (name === 'analytics')    loadAnalytics();
+      if (name === 'settings')     loadSettings();
+    }
+
+    /* ── Study Rooms ── */
+    async function loadStudyRooms() {
+      const [myRes, pubRes] = await Promise.all([
+        fetch('/api/rooms/my',{ credentials:'include' }),
+        fetch('/api/rooms',   { credentials:'include' })
+      ]);
+      const { rooms: myRooms } = await myRes.json();
+      const { rooms: pubRooms } = await pubRes.json();
+      renderSrPanel('sr-my-rooms', myRooms||[], true);
+      renderSrPanel('sr-public-rooms', (pubRooms||[]).filter(r => r.is_live), false);
+    }
+    const grads=['linear-gradient(135deg,#7c3aed,#ec4899)','linear-gradient(135deg,#06b6d4,#3b82f6)','linear-gradient(135deg,#f97316,#eab308)','linear-gradient(135deg,#22c55e,#06b6d4)','linear-gradient(135deg,#a855f7,#ec4899)'];
+    function renderSrPanel(id, rooms, isMy) {
+      const el = document.getElementById(id);
+      if (!rooms.length) { el.innerHTML = `<div class="sec-empty"><p>${isMy ? 'No rooms yet. Create or join one!' : 'No active rooms right now. Check back later!'}</p></div>`; return; }
+      el.innerHTML = `<div class="sr-room-grid">` + rooms.map((r,i) => `
+        <div class="sr-card" onclick="window.location.href='room.html?id=${r.id}'">
+          <div class="sr-card-header">
+            <div class="sr-card-icon" style="background:${grads[i%grads.length]}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div><div class="sr-card-name">${r.name.replace(/</g,'&lt;')}</div><div class="sr-card-meta">${r.subject||'General'} · ${r.member_count} member${r.member_count!==1?'s':''}</div></div>
+          </div>
+          <div class="sr-card-footer">
+            ${isMy
+              ? (r.is_live
+                  ? `<span class="sr-card-badge" style="background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">● Live</span>`
+                  : `<span class="sr-card-badge" style="background:rgba(255,255,255,0.04);color:#6b7280;border:1px solid rgba(255,255,255,0.08)">○ Inactive</span>`)
+              : `<span class="sr-card-badge" style="background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">● Live</span>`}
+            <div style="display:flex;gap:8px;align-items:center">
+              ${isMy && Number(r.host_id) === Number(currentUserId()) ? `<button onclick="event.stopPropagation();deleteRoom(${r.id})" title="Delete room" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer">Delete</button>` : ''}
+              <button class="sr-enter-btn" onclick="event.stopPropagation();window.location.href='room.html?id=${r.id}'">${isMy?'Enter →':'Join →'}</button>
+            </div>
+          </div>
+        </div>`).join('') + `</div>`;
+    }
+    async function deleteRoom(id) {
+      if (!confirm('Delete this room? This cannot be undone.')) return;
+      const r = await fetch(`/api/rooms/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (r.ok) { loadStudyRooms(); } else { const b = await r.json(); alert(b.error || 'Failed to delete room'); }
+    }
+    function switchRoomsTab(tab, btn) {
+      document.querySelectorAll('#sec-study-rooms .sec-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('sr-my-rooms').style.display = tab==='my' ? '' : 'none';
+      document.getElementById('sr-public-rooms').style.display = tab==='public' ? '' : 'none';
+    }
+
+    /* ── Community ── */
+    let _commSearchTimer;
+    function debounceCommunitySearch() { clearTimeout(_commSearchTimer); _commSearchTimer = setTimeout(()=>loadCommunityMembers(), 400); }
+    async function loadCommunity() {
+      loadCommunityMembers();
+      loadCommunityFriends();
+    }
+    async function loadCommunityMembers() {
+      const q = document.getElementById('communitySearch')?.value||'';
+      const res = await fetch(`/api/community/users?q=${encodeURIComponent(q)}`, { credentials:'include' });
+      const { users } = await res.json();
+      const el = document.getElementById('comm-members');
+      if (!users.length) { el.innerHTML = `<div class="sec-empty"><p>No members found.</p></div>`; return; }
+      el.innerHTML = `<div class="comm-user-grid">` + users.map((u,i) => `
+        <div class="comm-card">
+          <div class="comm-card-top">
+            <div style="position:relative;flex-shrink:0">
+              <div class="comm-av" style="background:${grads[i%grads.length]}">${u.first_name.charAt(0).toUpperCase()}</div>
+              <div class="presence-dot ${u.presence||'offline'}" style="position:absolute;bottom:-1px;right:-1px"></div>
+            </div>
+            <div><div class="comm-name">${u.first_name} ${u.last_name||''}</div><div class="level-badge">Lv ${u.level}</div><div class="comm-xp">${u.xp} XP</div></div>
+          </div>
+          ${commActionBtn(u)}
+        </div>`).join('') + `</div>`;
+    }
+    function commActionBtn(u) {
+      if (!u.friendship_id) return `<button class="comm-action-btn btn-add" onclick="sendFriendReq(${u.id},this)">+ Add Friend</button>`;
+      if (u.friendship_status==='accepted') return `<button class="comm-action-btn btn-friends" disabled>✓ Friends</button>`;
+      if (u.friendship_status==='pending' && Number(u.requester_id)===Number(currentUserId())) return `<button class="comm-action-btn btn-pending" disabled>Request Sent</button>`;
+      return `<button class="comm-action-btn btn-accept" onclick="acceptReq(${u.friendship_id},this)">Accept</button>`;
+    }
+    function currentUserId() { return (JSON.parse(localStorage.getItem('ss_user')||'{}')).id; }
+    async function sendFriendReq(addresseeId, btn) {
+      if (typeof btn === 'string') btn = document.getElementById(btn);
+      btn.disabled=true; btn.textContent='…';
+      const res = await fetch('/api/community/friend-request', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({addressee_id:addresseeId}) });
+      const d = await res.json();
+      btn.textContent = d.status==='accepted' ? '✓ Friends' : 'Request Sent';
+      btn.className = d.status==='accepted' ? 'comm-action-btn btn-friends' : 'comm-action-btn btn-pending';
+    }
+    async function acceptReq(friendshipId, btn) {
+      btn.disabled=true;
+      await fetch(`/api/community/friend-request/${friendshipId}/accept`, { method:'PUT', credentials:'include' });
+      btn.textContent='✓ Friends'; btn.className='comm-action-btn btn-friends';
+      loadCommunityFriends();
+    }
+    async function loadCommunityFriends() {
+      const res = await fetch('/api/community/friends', { credentials:'include' });
+      const { friends, pending } = await res.json();
+      const badge = document.getElementById('comm-req-badge');
+      if (badge) { badge.textContent=pending.length; badge.style.display=pending.length?'inline':'none'; }
+      const fEl = document.getElementById('comm-friends');
+      fEl.innerHTML = friends.length
+        ? `<div class="comm-user-grid">` + friends.map((u,i)=>`<div class="comm-card"><div class="comm-card-top"><div class="comm-av" style="background:${grads[i%grads.length]}">${u.first_name.charAt(0).toUpperCase()}</div><div><div class="comm-name">${u.first_name} ${u.last_name||''}</div><div class="level-badge">Lv ${u.level}</div><div class="comm-xp">${u.xp} XP</div></div></div><button class="comm-action-btn btn-friends" disabled>✓ Friends</button></div>`).join('') + `</div>`
+        : `<div class="sec-empty"><p>No friends yet — search for classmates in Members!</p></div>`;
+      const rEl = document.getElementById('comm-requests');
+      rEl.innerHTML = pending.length
+        ? `<div class="comm-user-grid">` + pending.map((u,i)=>`<div class="comm-card"><div class="comm-card-top"><div class="comm-av" style="background:${grads[i%grads.length]}">${u.first_name.charAt(0).toUpperCase()}</div><div><div class="comm-name">${u.first_name} ${u.last_name||''}</div><div class="level-badge">Lv ${u.level}</div></div></div><div class="comm-req-actions"><button class="comm-action-btn btn-accept" onclick="acceptReq(${u.friendship_id},this)">Accept</button><button class="comm-action-btn btn-decline" onclick="declineReq(${u.friendship_id},this)">Decline</button></div></div>`).join('') + `</div>`
+        : `<div class="sec-empty"><p>No pending requests.</p></div>`;
+    }
+    async function declineReq(id, btn) {
+      btn.disabled=true;
+      await fetch(`/api/community/friend-request/${id}`, { method:'DELETE', credentials:'include' });
+      btn.closest('.comm-card').remove();
+      loadCommunityFriends();
+    }
+    function switchCommunityTab(tab, btn) {
+      document.querySelectorAll('#sec-community .sec-tab').forEach(b=>b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      else {
+        const tabs = document.querySelectorAll('#sec-community .sec-tab');
+        tabs.forEach(b => { if (b.textContent.toLowerCase().includes(tab) || b.getAttribute('onclick')?.includes(`'${tab}'`)) b.classList.add('active'); });
+      }
+      ['members','suggestions','friends','requests'].forEach(t => document.getElementById('comm-'+t).style.display = t===tab ? '' : 'none');
+      const searchWrap = document.getElementById('comm-search-wrap');
+      if (searchWrap) searchWrap.style.display = tab === 'members' ? '' : 'none';
+      if (tab==='friends'||tab==='requests') loadCommunityFriends();
+      if (tab==='suggestions') loadCommunityRecommendations();
+    }
+
+    async function loadCommunityRecommendations() {
+      const el = document.getElementById('comm-suggestions');
+      el.innerHTML = '<div style="color:var(--muted);padding:20px;font-size:13px">Loading suggestions…</div>';
+      try {
+        const res = await fetch('/api/community/recommendations', { credentials:'include' });
+        const { recommendations: recs } = await res.json();
+        if (!recs?.length) {
+          el.innerHTML = '<div class="sugg-empty">No suggestions yet — join some rooms and add friends to unlock recommendations 🚀</div>';
+          return;
+        }
+        const grads = ['linear-gradient(135deg,#7c3aed,#ec4899)','linear-gradient(135deg,#06b6d4,#3b82f6)','linear-gradient(135deg,#f97316,#eab308)','linear-gradient(135deg,#22c55e,#06b6d4)','linear-gradient(135deg,#a855f7,#ec4899)'];
+        el.innerHTML = `<div class="sugg-grid">${recs.map((u,i) => `
+          <div class="sugg-card">
+            <div class="comm-card-top">
+              <div class="comm-av" style="background:${grads[i%grads.length]}">${u.first_name.charAt(0).toUpperCase()}</div>
+              <div>
+                <div class="comm-name">${u.first_name} ${u.last_name||''}</div>
+                <span class="level-badge">Lv ${u.level}</span>
+                <div class="sugg-detail">${u.detail}</div>
+              </div>
+            </div>
+            <div class="sugg-reason">${u.reason}</div>
+            <button class="comm-action-btn btn-add" id="sugg-btn-${u.id}" onclick="sendFriendReq(${u.id},'sugg-btn-${u.id}')">Add Friend</button>
+          </div>`).join('')}</div>`;
+      } catch(e) {
+        el.innerHTML = '<div class="sugg-empty">Failed to load suggestions.</div>';
+      }
+    }
+
+    /* ── Resources ── */
+    async function loadResources() {
+      const [myRes, savedRes] = await Promise.all([
+        fetch('/api/my-resources',       { credentials:'include' }),
+        fetch('/api/my-resources/saved', { credentials:'include' })
+      ]);
+      const { resources: myR }    = await myRes.json();
+      const { resources: savedR } = await savedRes.json();
+      renderResPanel('res-my', myR||[], false);
+      renderResPanel('res-saved', savedR||[], true);
+    }
+    const typeIcon = t => t==='image'?'🖼️':t==='pdf'?'📄':t==='file'?'📦':'🔗';
+    function renderResPanel(id, resources, isSaved) {
+      const el = document.getElementById(id);
+      if (!resources.length) { el.innerHTML = `<div class="sec-empty"><p>${isSaved?'No saved resources yet.':'You haven\'t uploaded any resources yet.'}</p></div>`; return; }
+      el.innerHTML = `<div class="res-grid">` + resources.map(r => `
+        <div class="res-card">
+          <div class="res-type-icon">${typeIcon(r.file_type)}</div>
+          <div class="res-card-title">${r.title.replace(/</g,'&lt;')}</div>
+          <div onclick="window.location.href='room.html?id=${r.room_id}#resources'" class="res-room-tag">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            ${(r.room_name||'').replace(/</g,'&lt;')}
+          </div>
+          <div class="res-card-actions">
+            ${r.url ? `<button class="res-btn res-btn-open" onclick="window.open('${r.url}','_blank')">Open</button>` : ''}
+            <button class="res-btn res-btn-goto" onclick="window.location.href='room.html?id=${r.room_id}'">Go to Room</button>
+            <button class="res-btn ${r.is_saved?'res-btn-unsave':'res-btn-save'}" onclick="toggleSave(${r.id},this)">${r.is_saved?'Unsave':'Save'}</button>
+          </div>
+        </div>`).join('') + `</div>`;
+    }
+    async function toggleSave(id, btn) {
+      const res = await fetch(`/api/my-resources/${id}/save`, { method:'POST', credentials:'include' });
+      const { saved } = await res.json();
+      btn.className = `res-btn ${saved?'res-btn-unsave':'res-btn-save'}`;
+      btn.textContent = saved ? 'Unsave' : 'Save';
+    }
+    function switchResourcesTab(tab, btn) {
+      document.querySelectorAll('#sec-resources .sec-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('res-my').style.display = tab==='my' ? '' : 'none';
+      document.getElementById('res-saved').style.display = tab==='saved' ? '' : 'none';
+    }
+
+    /* ── Analytics ── */
+    async function loadAnalytics() {
+      const res = await fetch('/api/analytics', { credentials:'include' });
+      const d = await res.json();
+      const pct = d.nextLevelXp ? Math.round((d.levelXp / d.nextLevelXp) * 100) : 100;
+      const hrs = Math.floor(d.total_study_mins / 60), mins = d.total_study_mins % 60;
+      document.getElementById('analytics-content').innerHTML = `
+        <div class="analytics-hero">
+          <div class="level-circle"><div class="level-num">${d.level}</div><div class="level-lbl">LEVEL</div></div>
+          <div class="level-info">
+            <div class="level-title">Level ${d.level} Scholar</div>
+            <div class="level-sub">${d.xp} XP total · ${d.nextLevelXp - d.levelXp} XP to level ${d.level+1}</div>
+            <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
+            <div class="xp-label">${d.levelXp} / ${d.nextLevelXp} XP</div>
+          </div>
+        </div>
+        <div class="analytics-stats">
+          <div class="an-stat"><div class="an-stat-val">${d.day_streak}</div><div class="an-stat-lbl">Day Streak 🔥</div></div>
+          <div class="an-stat"><div class="an-stat-val">${hrs>0?hrs+'h ':''} ${mins}m</div><div class="an-stat-lbl">Study Time</div></div>
+          <div class="an-stat"><div class="an-stat-val">${d.completed_sessions}</div><div class="an-stat-lbl">Sessions Done</div></div>
+          <div class="an-stat"><div class="an-stat-val">${d.resources_shared}</div><div class="an-stat-lbl">Resources Shared</div></div>
+          <div class="an-stat"><div class="an-stat-val">${d.rooms_joined}</div><div class="an-stat-lbl">Rooms Joined</div></div>
+          <div class="an-stat"><div class="an-stat-val">${d.xp}</div><div class="an-stat-lbl">Total XP</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Leaderboard <span class="panel-badge">Top 10</span></div>
+          <div class="leaderboard-list" style="margin-top:12px">
+            ${d.leaderboard.map(u=>`
+              <div class="lb-row${u.is_me?' lb-me':''}">
+                <div class="lb-rank${u.rank<=3?' top3':''}">${u.rank<=3?['🥇','🥈','🥉'][u.rank-1]:u.rank}</div>
+                <div class="lb-name">${u.name.replace(/</g,'&lt;')}${u.is_me?' <span style="font-size:10px;color:#a78bfa">(you)</span>':''}</div>
+                <div class="level-badge">Lv ${u.level}</div>
+                <div class="lb-xp">${u.xp} XP</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    /* ── Settings ── */
+    async function loadSettings() {
+      const res = await fetch('/api/settings/profile', { credentials:'include' });
+      const { user } = await res.json();
+      document.getElementById('sFirstName').value = user.first_name || '';
+      document.getElementById('sLastName').value  = user.last_name  || '';
+      document.getElementById('sEmail').value     = user.email      || '';
+      const saved = localStorage.getItem('ss_status') || 'online';
+      updateStatusUI(saved);
+    }
+
+    /* ── Presence / Status ── */
+    function updateStatusUI(status) {
+      document.querySelectorAll('.status-opt').forEach(el => el.classList.toggle('active', el.dataset.status === status));
+      const dot = document.getElementById('sidebarStatusDot');
+      if (dot) { dot.className = `presence-dot ${status}`; }
+      const lbl = document.getElementById('sidebarStatusLabel');
+      const labels = { online:'Online', idle:'Idle', dnd:'Do Not Disturb', offline:'Invisible' };
+      if (lbl) lbl.textContent = labels[status] || 'Online';
+    }
+    async function setMyStatus(status) {
+      localStorage.setItem('ss_status', status);
+      updateStatusUI(status);
+      await fetch('/api/settings/status', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status }) });
+    }
+    // Heartbeat every 2 min to keep status alive
+    async function sendHeartbeat() {
+      const status = localStorage.getItem('ss_status') || 'online';
+      if (status === 'offline') return;
+      await fetch('/api/settings/heartbeat', { method:'POST', credentials:'include' }).catch(()=>{});
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const initStatus = localStorage.getItem('ss_status') || 'online';
+      setMyStatus(initStatus);
+      sendHeartbeat();
+      setInterval(sendHeartbeat, 2 * 60 * 1000);
+    });
+    // Go offline on tab close — heartbeat expires in 5 min anyway, but try best-effort
+    window.addEventListener('pagehide', () => {
+      const blob = new Blob([JSON.stringify({ status: 'offline' })], { type: 'application/json' });
+      navigator.sendBeacon('/api/settings/status-beacon', blob);
+    });
+
+    /* ── Auto-idle (like Discord: go idle after 10 min no input) ── */
+    let _lastInteract = Date.now();
+    let _autoIdled = false;
+    (function() {
+      function onActivity() {
+        _lastInteract = Date.now();
+        if (_autoIdled) {
+          _autoIdled = false;
+          const stored = localStorage.getItem('ss_status') || 'online';
+          if (stored === 'online') {
+            updateStatusUI('online');
+            fetch('/api/settings/status', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:'online'}) }).catch(()=>{});
+          }
+        }
+      }
+      ['mousemove','keydown','click','scroll','touchstart'].forEach(e =>
+        document.addEventListener(e, onActivity, { passive: true })
+      );
+      setInterval(() => {
+        const stored = localStorage.getItem('ss_status') || 'online';
+        if (stored === 'online' && !_autoIdled && Date.now() - _lastInteract > 10 * 60 * 1000) {
+          _autoIdled = true;
+          updateStatusUI('idle');
+          fetch('/api/settings/status', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:'idle'}) }).catch(()=>{});
+        }
+      }, 60 * 1000);
+    })();
+    async function saveProfile() {
+      const body = { first_name: document.getElementById('sFirstName').value.trim(), last_name: document.getElementById('sLastName').value.trim(), email: document.getElementById('sEmail').value.trim() };
+      const res = await fetch('/api/settings/profile', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await res.json();
+      if (!res.ok) { showToast('❌', d.error||'Failed'); return; }
+      showToast('✅', 'Profile updated!');
+      localStorage.setItem('ss_user', JSON.stringify({ ...JSON.parse(localStorage.getItem('ss_user')||'{}'), ...d.user }));
+      initUserName();
+    }
+    async function savePassword() {
+      const body = { current_password: document.getElementById('sCurrentPw').value, new_password: document.getElementById('sNewPw').value };
+      const res = await fetch('/api/settings/password', { method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const d = await res.json();
+      if (!res.ok) { showToast('❌', d.error||'Failed'); return; }
+      showToast('✅', 'Password updated!');
+      document.getElementById('sCurrentPw').value=''; document.getElementById('sNewPw').value='';
+    }
+    async function logout() {
+      await fetch('/api/auth/logout', { method:'POST', credentials:'include' });
+      localStorage.removeItem('ss_user');
+      window.location.href = 'login.html';
+    }
   </script>
 </body>
 </html>

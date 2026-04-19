@@ -4,6 +4,7 @@ const multer  = require('multer');
 const path    = require('path');
 const sql     = require('../db');
 const pusher  = require('../lib/pusher');
+const { put } = require('@vercel/blob');
 
 const router = express.Router({ mergeParams: true });
 
@@ -45,17 +46,35 @@ router.post('/', upload.single('file'), async (req, res) => {
   const user = getUser(req);
   if (!user) return res.status(401).json({ error: 'Login required' });
 
+  let fileUrl = '';
+  let detectedType = 'link';
+
   if (req.file) {
-    return res.status(400).json({ error: 'File uploads not supported. Share a URL instead.' });
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return res.status(503).json({ error: 'File storage not configured. Share a URL instead.' });
+    }
+    try {
+      const blob = await put(req.file.originalname, req.file.buffer, { access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN });
+      fileUrl = blob.url;
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      if (['.png','.jpg','.jpeg','.gif','.webp'].includes(ext)) detectedType = 'image';
+      else if (ext === '.pdf') detectedType = 'pdf';
+      else detectedType = 'file';
+    } catch (e) {
+      console.error('Blob upload error:', e);
+      return res.status(500).json({ error: 'File upload failed' });
+    }
   }
 
   const { title, url, file_type } = req.body;
-  if (!title && !url) return res.status(400).json({ error: 'Title or URL required' });
+  const finalUrl = fileUrl || url || '';
+  const finalType = file_type || detectedType;
+  if (!title && !finalUrl) return res.status(400).json({ error: 'Title or URL required' });
 
   try {
     const [resource] = await sql`
       INSERT INTO resources (room_id, user_id, title, url, file_type)
-      VALUES (${req.params.roomId}, ${user.id}, ${title || 'Untitled'}, ${url || ''}, ${file_type || 'link'})
+      VALUES (${req.params.roomId}, ${user.id}, ${title || req.file?.originalname || 'Untitled'}, ${finalUrl}, ${finalType})
       RETURNING *
     `;
     await sql`

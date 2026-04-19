@@ -427,10 +427,11 @@ async function loadDashboard() {
     // Discover Rooms grid — replace with live backend data
     const grid = document.getElementById('rooms-grid');
     if (grid) {
-      if (!rooms?.length) {
-        grid.innerHTML = '<div class="disc-empty">No public rooms yet. <button class="disc-create-link" onclick="openCreateRoom()">Create the first one →</button></div>';
+      const liveRooms = (rooms||[]).filter(r => r.is_live);
+      if (!liveRooms.length) {
+        grid.innerHTML = '<div class="disc-empty">No active rooms right now. <button class="disc-create-link" onclick="openCreateRoom()">Create the first one →</button></div>';
       } else {
-        grid.innerHTML = rooms.map(r => `
+        grid.innerHTML = liveRooms.map(r => `
           <div class="disc-room spotlight" onclick="joinRoom(${r.id})">
             <div class="disc-dot dot-live"></div>
             <div style="flex:1;min-width:0">
