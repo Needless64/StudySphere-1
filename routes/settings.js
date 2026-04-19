@@ -2,6 +2,7 @@ const express  = require('express');
 const jwt      = require('jsonwebtoken');
 const bcrypt   = require('bcryptjs');
 const sql      = require('../db');
+const pusher   = require('../lib/pusher');
 
 const router = express.Router();
 
@@ -79,6 +80,11 @@ router.put('/status', async (req, res) => {
     return res.status(400).json({ error: 'Invalid status' });
   try {
     await sql`UPDATE users SET status = ${status}, status_updated_at = NOW() WHERE id = ${user.id}`;
+    // Broadcast to all rooms this user is in
+    const rooms = await sql`SELECT room_id FROM room_members WHERE user_id = ${user.id}`;
+    await Promise.all(rooms.map(r =>
+      pusher.trigger(`room-${r.room_id}`, 'presence-update', { user_id: user.id, status }).catch(() => {})
+    ));
     res.json({ ok: true, status });
   } catch (e) {
     res.status(500).json({ error: 'Failed to update status' });

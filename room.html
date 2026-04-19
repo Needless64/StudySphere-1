@@ -83,7 +83,13 @@
     }
     .member-name { font-size: 13px; color: #c4b5fd; flex: 1; }
     .member-role { font-size: 10px; color: var(--muted); }
-    .online-indicator { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .online-indicator { display: none; }
+    .room-presence-dot { flex-shrink: 0; }
+    .room-presence-dot.online  { background: #23a55a; }
+    .room-presence-dot.idle    { background: #f0b232; box-shadow: inset 3px -2px 0 1px #0d0b1a; }
+    .room-presence-dot.dnd     { background: #f23f43; position: relative; }
+    .room-presence-dot.dnd::after { content:''; position:absolute; left:1px; right:1px; top:50%; transform:translateY(-50%); height:1.5px; background:#fff; border-radius:1px; }
+    .room-presence-dot.offline { background: #80848e; }
 
     /* ── Pomodoro Timer ── */
     .timer-card {

@@ -606,6 +606,11 @@ function initPusher(roomId) {
       .then(({ members }) => renderMembers(members || []));
   });
 
+  channel.bind('presence-update', ({ user_id, status }) => {
+    const dot = document.querySelector(`[data-member-id="${user_id}"] .room-presence-dot`);
+    if (dot) dot.className = `room-presence-dot ${status}`;
+  });
+
   // New resource shared
   channel.bind('new-resource', (resource) => {
     const me = JSON.parse(localStorage.getItem('ss_user') || '{}');
@@ -717,10 +722,13 @@ function renderMembers(members) {
     const makeOwnerBtn = (iAmHost && !isMe)
       ? `<button onclick="transferHost(${m.id})" title="Transfer room ownership" style="margin-left:auto;background:none;border:1px solid rgba(167,139,250,0.4);color:#a78bfa;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;">Make Owner</button>`
       : '';
-    return `<div class="member" style="display:flex;align-items:center;gap:8px">
-      <div class="member-av" style="background:${grads[i % grads.length]}">${initial}</div>
+    return `<div class="member" data-member-id="${m.id}" style="display:flex;align-items:center;gap:8px">
+      <div style="position:relative;flex-shrink:0">
+        <div class="member-av" style="background:${grads[i % grads.length]}">${initial}</div>
+        <div class="room-presence-dot ${m.presence||'offline'}" style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #0d0b1a"></div>
+      </div>
       <div style="flex:1;min-width:0"><div class="member-name">${display}</div><div class="member-role">${m.role}</div></div>
-      ${makeOwnerBtn}<div class="online-indicator"></div>
+      ${makeOwnerBtn}
     </div>`;
   }).join('');
   if (countEl) countEl.textContent = members.length + ' Live';
