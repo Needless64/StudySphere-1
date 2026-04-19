@@ -526,6 +526,9 @@ async function loadRoom() {
   if (!roomId) return;
 
   try {
+    // Auto-join on any entry (direct link or button — ON CONFLICT DO NOTHING on server)
+    await fetch(`/api/rooms/${roomId}/join`, { method: 'POST', credentials: 'include' }).catch(() => {});
+
     const [roomRes, msgsRes, resRes] = await Promise.all([
       fetch(`/api/rooms/${roomId}`, { credentials: 'include' }),
       fetch(`/api/rooms/${roomId}/messages`, { credentials: 'include' }),
