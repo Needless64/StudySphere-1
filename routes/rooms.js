@@ -115,7 +115,7 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/members', async (req, res) => {
   try {
     const members = await sql`
-      SELECT u.id, u.first_name, u.last_name,
+      SELECT u.id, u.first_name, u.last_name, u.avatar_url,
              CASE WHEN r.host_id = u.id THEN 'Host' ELSE 'Member' END AS role,
              CASE WHEN u.status_updated_at IS NOT NULL AND u.status_updated_at > NOW() - INTERVAL '5 minutes' THEN u.status ELSE 'offline' END AS presence
       FROM room_members rm

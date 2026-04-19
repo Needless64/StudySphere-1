@@ -32,7 +32,7 @@ router.get('/users', async (req, res) => {
     const users = q
       ? await sql`
           SELECT u.id, u.first_name, u.last_name,
-                 COALESCE(s.total_study_mins, 0) AS xp,
+                 COALESCE(s.total_study_mins, 0) AS xp, u.avatar_url,
                  f.id AS friendship_id, f.status AS friendship_status, f.requester_id,
                  CASE WHEN u.status_updated_at IS NOT NULL AND u.status_updated_at > NOW() - INTERVAL '5 minutes' THEN u.status ELSE 'offline' END AS presence
           FROM users u
@@ -46,7 +46,7 @@ router.get('/users', async (req, res) => {
           ORDER BY xp DESC LIMIT 30`
       : await sql`
           SELECT u.id, u.first_name, u.last_name,
-                 COALESCE(s.total_study_mins, 0) AS xp,
+                 COALESCE(s.total_study_mins, 0) AS xp, u.avatar_url,
                  f.id AS friendship_id, f.status AS friendship_status, f.requester_id,
                  CASE WHEN u.status_updated_at IS NOT NULL AND u.status_updated_at > NOW() - INTERVAL '5 minutes' THEN u.status ELSE 'offline' END AS presence
           FROM users u
@@ -70,7 +70,7 @@ router.get('/friends', async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Login required' });
   try {
     const friends = await sql`
-      SELECT u.id, u.first_name, u.last_name,
+      SELECT u.id, u.first_name, u.last_name, u.avatar_url,
              COALESCE(s.total_study_mins, 0) AS xp,
              f.id AS friendship_id, f.status, f.requester_id,
              CASE WHEN u.status_updated_at IS NOT NULL AND u.status_updated_at > NOW() - INTERVAL '5 minutes' THEN u.status ELSE 'offline' END AS presence
@@ -82,7 +82,7 @@ router.get('/friends', async (req, res) => {
       ORDER BY u.first_name
     `;
     const pending = await sql`
-      SELECT u.id, u.first_name, u.last_name,
+      SELECT u.id, u.first_name, u.last_name, u.avatar_url,
              COALESCE(s.total_study_mins, 0) AS xp,
              f.id AS friendship_id
       FROM friendships f
@@ -180,7 +180,7 @@ router.get('/recommendations', async (req, res) => {
 
     // Studied together — shared room membership
     const studiedTogether = await sql`
-      SELECT u.id, u.first_name, u.last_name,
+      SELECT u.id, u.first_name, u.last_name, u.avatar_url,
              COALESCE(s.total_study_mins, 0) AS xp,
              COUNT(DISTINCT rm1.room_id)::int AS shared_rooms
       FROM room_members rm1
@@ -209,7 +209,7 @@ router.get('/recommendations', async (req, res) => {
         WHERE CASE WHEN f.requester_id = mf.uid THEN f.addressee_id ELSE f.requester_id END != ${user.id}
         GROUP BY cid
       )
-      SELECT u.id, u.first_name, u.last_name,
+      SELECT u.id, u.first_name, u.last_name, u.avatar_url,
              COALESCE(s.total_study_mins, 0) AS xp,
              c.mutual_count
       FROM candidates c

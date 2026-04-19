@@ -1,10 +1,17 @@
 const express  = require('express');
 const jwt      = require('jsonwebtoken');
 const bcrypt   = require('bcryptjs');
+const multer   = require('multer');
+const { put }  = require('@vercel/blob');
 const sql      = require('../db');
 const pusher   = require('../lib/pusher');
 
 const router = express.Router();
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (_, file, cb) => cb(null, file.mimetype.startsWith('image/')),
+});
 
 function getUser(req) {
   const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
@@ -17,7 +24,7 @@ router.get('/profile', async (req, res) => {
   const user = getUser(req);
   if (!user) return res.status(401).json({ error: 'Login required' });
   try {
-    const [u] = await sql`SELECT id, first_name, last_name, email, created_at FROM users WHERE id = ${user.id}`;
+    const [u] = await sql`SELECT id, first_name, last_name, email, avatar_url, created_at FROM users WHERE id = ${user.id}`;
     if (!u) return res.status(404).json({ error: 'User not found' });
     res.json({ user: u });
   } catch (e) {
@@ -110,6 +117,24 @@ router.post('/heartbeat', async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.json({ ok: true });
+  }
+});
+
+// POST /api/settings/avatar
+router.post('/avatar', avatarUpload.single('avatar'), async (req, res) => {
+  const user = getUser(req);
+  if (!user) return res.status(401).json({ error: 'Login required' });
+  if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
+  try {
+    const ext = req.file.mimetype.split('/')[1] || 'jpg';
+    const blob = await put(`avatars/user-${user.id}-${Date.now()}.${ext}`, req.file.buffer, {
+      access: 'public', token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    await sql`UPDATE users SET avatar_url = ${blob.url} WHERE id = ${user.id}`;
+    res.json({ ok: true, avatar_url: blob.url });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 
